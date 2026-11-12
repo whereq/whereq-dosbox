@@ -1,0 +1,195 @@
+// whereq-dosbox - Android application module (Gradle / Android Studio).
+//
+// The canonical build in this repository does NOT use Gradle: it drives the
+// SDK build-tools directly (android/build-apk.sh), because Gradle is not
+// installed in the environment this port was developed in and pulling the
+// whole AGP dependency tree just to produce one APK is wasteful.
+//
+// These files are here for people who do have a normal Android Studio setup.
+// They produce an equivalent APK:
+//
+//   ./gradlew assembleDebug     -> build/outputs/apk/debug/app-debug.apk
+//   ./gradlew assembleRelease   -> build/outputs/apk/release/app-release.apk
+//
+// Verified on 2026-11-10 with Gradle 8.7 + AGP 8.1.4 on JDK 21: the release
+// APK comes out with the same signing certificate, the same version
+// (versionCode/versionName are taken from -PappVersionCode/-PappVersionName),
+// the same v1+v2+v3 signature schemes and byte-identical libdosbox.so files as
+// android/build-apk.sh --release. See android/README.md for the comparison
+// table.
+//
+// Note: AGP 8.1.4 warns that it was only tested up to compileSdk 34. The
+// warning is harmless here (the app targets API 21 and uses nothing newer),
+// and android.suppressUnsupportedCompileSdk=36 in gradle.properties silences
+// it.
+plugins {
+    id 'com.android.application'
+}
+
+// The emulator ships 640x400 DOS text and the picture is scaled by the SDL
+// renderer, so the app itself is the only thing in this module.
+def nativeAbis = ['arm64-v8a', 'armeabi-v7a', 'x86_64']
+
+// The version is kept in one place so that the Gradle build and the
+// no-Gradle script (android/build-apk.sh --version-code/--version-name)
+// can be given the same numbers:
+//
+//   gradle assembleRelease -PappVersionCode=7 -PappVersionName=0.7.0
+//
+// The default comes from the VERSION file at the repo root, which
+// bin/release.sh mirrors from the release tag - so the tag is the single
+// source of truth. -PappVersionCode / -PappVersionName still win.
+def versionFile = rootProject.file('../VERSION')
+def repoVersion = versionFile.exists() ? versionFile.text.trim() : '1.0.0.1'
+def repoVersionParts = repoVersion.split('\\.')
+def repoVersionCode = repoVersionParts.length == 4
+        ? repoVersionParts[0].toInteger() * 1000000
+        + repoVersionParts[1].toInteger() * 10000
+        + repoVersionParts[2].toInteger() * 100
+        + repoVersionParts[3].toInteger()
+        : 1
+
+def appVersionCode = (project.findProperty('appVersionCode') ?: repoVersionCode).toInteger()
+def appVersionName = project.findProperty('appVersionName') ?: repoVersion
+
+// The native library is built out-of-tree by android/build-android.sh into
+// build/android/<abi>/libdosbox.so. AGP wants the ABI as the first path
+// segment below a jniLibs directory, so the libraries are staged there.
+def stagedJniLibs = layout.buildDirectory.dir('generated/jniLibs')
+
+// The canonical manifest carries android:package, because aapt2 needs it for
+// the no-Gradle build (android/build-apk.sh). AGP 8 does not allow that
+// attribute any more - the namespace in build.gradle takes its place - so
+// the Gradle build works on a copy with the attribute removed.
+def generatedManifest = layout.buildDirectory.file('generated/AndroidManifest.xml')
+
+tasks.register('generateManifest') {
+    description = 'Copies the manifest without the android:package attribute'
+    def src = file('src/main/AndroidManifest.xml')
+    def out = generatedManifest
+    inputs.file(src)
+    outputs.file(out)
+    doLast {
+        def text = src.text.replaceAll(/package="com\.whereq\.dosbox"/, '')
+        def target = out.get().asFile
+        target.parentFile.mkdirs()
+        target.text = text
+    }
+}
+
+tasks.register('stageNativeLibs', Copy) {
+    description = 'Copies the NDK-built libdosbox.so into the jniLibs layout'
+    into stagedJniLibs
+    nativeAbis.each { abi ->
+        from("${rootDir}/../build/android/${abi}/libdosbox.so") {
+            into abi
+        }
+    }
+}
+
+android {
+    namespace 'com.whereq.dosbox'
+    // The SDK in this environment carries android-36; the app itself uses
+    // nothing newer than API 21, the compile SDK only decides which
+    // platform the sources are compiled against.
+    compileSdk 36
+    buildToolsVersion '36.0.0'
+    defaultConfig {
+        applicationId 'com.whereq.dosbox'
+        minSdk 21
+        targetSdk 34
+        versionCode appVersionCode
+        versionName appVersionName
+    }
+
+    signingConfigs {
+        release {
+            // The release key is never committed. Point the build at it with
+            // WHEREQ_RELEASE_KEYSTORE / WHEREQ_RELEASE_STORE_PASS, or put the
+            // same values into a keystore.properties file next to this
+            // build.gradle:
+            //
+            //   storeFile=/abs/path/to/release.keystore
+            //   storePassword=...
+            //   keyAlias=whereq
+            //   keyPassword=...
+            def props = new Properties()
+            def propsFile = rootProject.file('keystore.properties')
+            if (propsFile.exists()) {
+                propsFile.withInputStream { props.load(it) }
+            }
+            // NOTE: the local names deliberately differ from the signingConfig
+            // property names. In Groovy a local variable of the same name
+            // shadows the setter method, so "storeFile file(storeFile)" would
+            // be parsed as String.call() and fail the build.
+            def keystorePath = props['storeFile'] ?: System.getenv('WHEREQ_RELEASE_KEYSTORE')
+            def storePass = props['storePassword'] ?: System.getenv('WHEREQ_RELEASE_STORE_PASS')
+            def aliasName  = props['keyAlias'] ?: System.getenv('WHEREQ_RELEASE_ALIAS') ?: 'whereq'
+            def keyPass   = props['keyPassword'] ?: System.getenv('WHEREQ_RELEASE_KEY_PASS') ?: storePass
+
+            if (keystorePath && storePass) {
+                storeFile file(keystorePath)
+                storePassword storePass
+                keyAlias aliasName
+                keyPassword keyPass
+                // Match android/build-apk.sh: v1 + v2 + v3 signature schemes.
+                enableV1Signing true
+                enableV2Signing true
+                enableV3Signing true
+            } else {
+                // Without a key the release build cannot be signed properly.
+                // Fall back to the debug key so that "assembleRelease" still
+                // produces an installable APK for local testing - it stays
+                // debuggable in that case and must not be shipped.
+                logger.warn('No release keystore configured - falling back to the debug key. ' +
+                        'Set WHEREQ_RELEASE_KEYSTORE and WHEREQ_RELEASE_STORE_PASS for a real release build.')
+                storeFile file("${System.getProperty('user.home')}/.android/debug.keystore")
+                storePassword 'android'
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            // android:debuggable comes from the build type, not from the
+            // manifest, so the release build is not debuggable.
+            debuggable true
+            jniDebuggable true
+        }
+        release {
+            minifyEnabled false   // see proguard-rules.pro before enabling
+            shrinkResources false
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = [stagedJniLibs.get().asFile]
+            // AGP 8 refuses a package attribute in the source manifest (the
+            // namespace above replaces it), while aapt2 - which the no-Gradle
+            // build uses - needs it. So the canonical manifest keeps the
+            // package and Gradle works on a copy without it.
+            manifest.srcFile generatedManifest
+        }
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging false
+        }
+    }
+}
+
+tasks.named('preBuild') {
+    dependsOn 'stageNativeLibs'
+    dependsOn 'generateManifest'
+}

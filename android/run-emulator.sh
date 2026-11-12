@@ -1,0 +1,139 @@
+#!/bin/bash
+# run-emulator.sh - drive the app on an Android emulator from WSL.
+#
+# This host is WSL2 on Windows, and the only Android SDK/emulator available is
+# the Windows one under /mnt/c. Two consequences shape this script:
+#
+#   * the emulator and adb must run as *Windows* processes, so every adb call
+#     goes through cmd.exe;
+#   * WSL cannot reach the Windows loopback (127.0.0.1:5037 / :5555 is not
+#     forwarded), so the Linux adb server is useless here - the Windows adb
+#     server has to own the emulator.
+#
+# Usage:
+#   ./android/run-emulator.sh install     build + install + start the app
+#   ./android/run-emulator.sh start       start the app only
+#   ./android/run-emulator.sh shot FILE   save a screenshot
+#   ./android/run-emulator.sh log         dump logcat
+#   ./android/run-emulator.sh shell CMD   run a shell command
+#   ./android/run-emulator.sh boot        boot the emulator and wait for it
+set -euo pipefail
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$HERE/.." && pwd)"
+
+WIN_SDK="/mnt/c/Users/googo/AppData/Local/Android/Sdk"
+WIN_HOME="/mnt/c/Users/googo"
+AVD="${AVD:-Medium_Phone_API_37.0}"
+# Which APK to install. Override with APK_NAME=whereq-dosbox-release.apk to
+# install the production build (it is signed with a different key, so the
+# debug build has to be uninstalled first).
+APK_NAME="${APK_NAME:-whereq-dosbox-debug.apk}"
+APK_SRC="$ROOT/build/apk/$APK_NAME"
+APK_WIN="C:\\Users\\googo\\$APK_NAME"
+PKG="com.whereq.dosbox"
+ACT="$PKG/.WhereqDosboxActivity"
+
+# Run the Windows adb with a Windows cwd (a UNC cwd makes cmd.exe complain and
+# breaks relative paths).
+#
+# The arguments are deliberately NOT quoted: under WSL interop cmd.exe does not
+# strip the quotes, so adb would receive them literally ("unknown command
+# \"devices\""). None of our paths contain spaces, and cmd.exe rejoins the
+# argument vector with spaces, so `shell "getprop x"` still works.
+wadb() {
+  # Run cmd.exe from a Windows directory: a WSL cwd is a UNC path and cmd.exe
+  # then prints a multi-line warning that would end up in the parsed output.
+  # stderr is deliberately left out of the pipe so that only adb's stdout is
+  # parsed.
+  ( cd "$WIN_HOME" && \
+    cmd.exe /c "cd /d C:\\ && C:\\Users\\googo\\AppData\\Local\\Android\\Sdk\\platform-tools\\adb.exe $*" ) \
+    | tr -d '\r'
+}
+
+emu_state() {
+  wadb devices | grep -E "^emulator-5554" | awk '{print $2}'
+}
+
+do_boot() {
+  if [ -z "$(emu_state)" ]; then
+    echo "== starting emulator (AVD: $AVD) =="
+    ( cd "$WIN_SDK/emulator" && \
+      setsid nohup ./emulator.exe -avd "$AVD" -no-window -no-audio -no-boot-anim \
+        -no-snapshot -gpu swiftshader_indirect -port 5554 > /tmp/emu.log 2>&1 < /dev/null & )
+    sleep 10
+  fi
+
+  # The adb server must be running *before* the emulator registers, otherwise
+  # the device shows up as "unauthorized" and never recovers.
+  wadb start-server >/dev/null
+  echo "== waiting for device =="
+  for i in $(seq 1 60); do
+    state="$(emu_state)"
+    if [ "$state" = "device" ]; then
+      echo "device ready after ${i}0s"
+      break
+    fi
+    sleep 10
+  done
+  [ "$(emu_state)" = "device" ] || { echo "emulator did not come up" >&2; exit 1; }
+
+  echo "== waiting for boot_completed =="
+  for i in $(seq 1 30); do
+    b="$(wadb shell getprop sys.boot_completed | tr -d ' \r\n')"
+    [ "$b" = "1" ] && { echo "boot completed"; return 0; }
+    sleep 10
+  done
+  echo "boot did not complete" >&2
+  exit 1
+}
+
+do_install() {
+  [ -f "$APK_SRC" ] || { echo "missing $APK_SRC - run android/build-apk.sh first" >&2; exit 1; }
+  cp "$APK_SRC" "/mnt/c/Users/googo/$APK_NAME"
+  # Verify the copy really landed: a stale file here silently installs the
+  # previous APK, which is very confusing to debug.
+  local a b
+  a="$(md5sum "$APK_SRC" | cut -d' ' -f1)"
+  b="$(md5sum "/mnt/c/Users/googo/$APK_NAME" | cut -d' ' -f1)"
+  [ "$a" = "$b" ] || { echo "APK copy mismatch ($a != $b)" >&2; exit 1; }
+  echo "== installing =="
+  local out
+  out="$(wadb install -r "$APK_WIN")"
+  echo "$out"
+  echo "$out" | grep -q "Success" || { echo "install failed" >&2; exit 1; }
+}
+
+do_clear() {
+  echo "== clearing app data =="
+  wadb shell pm clear "$PKG"
+  # "pm clear" kills the app; give the system a moment to finish tearing the
+  # process down before we start it again.
+  sleep 3
+}
+
+do_start() {
+  echo "== starting $ACT =="
+  wadb shell am force-stop "$PKG"
+  wadb shell am start -n "$ACT"
+}
+
+do_shot() {
+  out="${1:-$ROOT/build/apk/screen.png}"
+  wadb shell screencap -p /sdcard/_shot.png
+  wadb pull /sdcard/_shot.png "C:\\Users\\googo\\_shot.png" >/dev/null
+  cp /mnt/c/Users/googo/_shot.png "$out"
+  echo "saved $out"
+}
+
+case "${1:-install}" in
+  boot)    do_boot ;;
+  install) do_boot; do_install; do_start ;;
+  reinstall) do_boot; do_clear; do_install; do_start ;;
+  clear)   do_clear ;;
+  start)   do_start ;;
+  shot)    shift; do_shot "$@" ;;
+  log)     wadb logcat -d ;;
+  shell)   shift; wadb shell "$@" ;;
+  *)       echo "usage: $0 {boot|install|reinstall|clear|start|shot|log|shell}" >&2; exit 2 ;;
+esac

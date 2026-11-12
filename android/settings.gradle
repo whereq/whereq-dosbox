@@ -1,0 +1,27 @@
+// Gradle settings for the whereq-dosbox Android project.
+//
+//   android/settings.gradle      <- this file (project root)
+//   android/build.gradle         <- root project
+//   android/app/build.gradle     <- the application module
+//
+// The native library is NOT built by Gradle: android/build-android.sh drives
+// CMake + the NDK out-of-tree and puts libdosbox.so into
+// <repo>/build/android/<abi>/. The module's build.gradle stages it into the
+// APK.
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'whereq-dosbox'
+include ':app'

@@ -1,0 +1,10 @@
+11-10 21:34:09.767  8725  8770 I DOSBox  : Android touch: type=1793 id=0 px=1000,500 dos=0.361,0.463 -> mouse=231,92
+11-10 21:35:26.120  8899  8933 I DOSBox  : Android texture output: renderer=1080x2274 window=1080x2274 clip=0,732 1080x810 texture=640x400
+11-10 21:35:26.303  8899  8933 I DOSBox  : Android texture output: renderer=2400x1080 window=2400x1080 clip=480,0 1440x1080 texture=640x400
+11-10 21:35:26.515  8899  8933 I DOSBox  : Android first frame presented, sdl error: ""
+11-10 21:36:18.658  8899  8933 I DOSBox  : Android touch: type=1792 id=0 px=700,300 dos=0.153,0.278 -> mouse=97,55
+11-10 21:36:18.658  8899  8933 I DOSBox  : Android touch: type=1793 id=0 px=700,300 dos=0.153,0.278 -> mouse=97,55
+11-10 21:36:19.573  8899  8933 I DOSBox  : Android touch: type=1792 id=0 px=1500,800 dos=0.709,0.741 -> mouse=453,148
+11-10 21:36:19.575  8899  8933 I DOSBox  : Android touch: type=1793 id=0 px=1500,800 dos=0.709,0.741 -> mouse=453,148
+11-10 21:36:20.485  8899  8933 I DOSBox  : Android touch: type=1792 id=0 px=1000,500 dos=0.361,0.463 -> mouse=231,92
+11-10 21:36:20.487  8899  8933 I DOSBox  : Android touch: type=1793 id=0 px=1000,500 dos=0.361,0.463 -> mouse=231,92

@@ -1,0 +1,74 @@
+whereq-dosbox
+Copyright (C) 2026 The whereq authors
+
+This product includes software developed by the DOSBox Team and its
+contributors, imported here unmodified.
+
+--------------------------------------------------------------------------
+DOSBox
+--------------------------------------------------------------------------
+
+The DOSBox emulator core in `src/`, `include/`, `visualc_net/`, `scripts/`
+and `docs/` is DOSBox r4305, imported verbatim from the Em-DOSBox project.
+
+    DOSBox - an open source DOS emulator
+    Copyright (C) 2002-2019 The DOSBox Team
+    https://www.dosbox.com/
+
+    The DOSBox Team:
+        Sjoerd v.d. Berg <harekiet>
+        Peter Veenstra <qbix79>
+        Ulf Wohlers <finsterr>
+        Tommy Frössman <fanskapet>
+        Dean Beeler <canadacow>
+        Sebastian Strohhöcker <c2woody>
+        Ralf Grillenberger <h-a-l-9000>
+
+The full list is in the `AUTHORS` file, which is kept unmodified.
+
+DOSBox is distributed under the terms of the GNU General Public License,
+version 2. The full text is in the `COPYING` file. Every source file of the
+emulator core carries the original copyright and license notice, and those
+notices are preserved unchanged.
+
+--------------------------------------------------------------------------
+Em-DOSBox
+--------------------------------------------------------------------------
+
+The tree this project is based on is Em-DOSBox, the Emscripten/web build of
+DOSBox by Boris Gjenero.
+
+    Em-DOSBox
+    Copyright (C) Boris Gjenero and contributors
+    https://github.com/dreamlayers/em-dosbox
+
+The import is the `em-dosbox-svn-sdl2` branch at tip e1f72dd1 ("Update to
+DOSBox r4305"), with its `ChangeLog`, `NEWS`, `THANKS` and `README` kept as
+they were imported.
+
+--------------------------------------------------------------------------
+whereq changes
+--------------------------------------------------------------------------
+
+Everything outside the emulator core is the whereq porting work:
+
+    android/      native Android application (NDK + CMake + Java)
+    native/       desktop Linux baseline build harness
+    bench/        CPU-core throughput probe
+    toolchain/    rootless dev toolchain
+    third_party/  fetch scripts for the SDL2 sources
+    porting/      the porting log, benchmark notes and screenshots
+    bin/          release.sh
+
+These are distributed under the same GNU General Public License, version 2,
+because they are combined with the DOSBox core into a single work. GPLv2
+requires that derivative works be distributed under the same license, so
+this project as a whole is GPLv2 - it cannot be relicensed under MIT or any
+other more permissive license.
+
+--------------------------------------------------------------------------
+Trademark
+--------------------------------------------------------------------------
+
+"DOSBox" is a trademark of the DOSBox project. This port is not affiliated
+with, sponsored or endorsed by the DOSBox team.

@@ -1,0 +1,81 @@
+# Autotools.gitignore from https://github.com/github/gitignore/
+
+# http://www.gnu.org/software/automake
+
+Makefile.in
+
+# http://www.gnu.org/software/autoconf
+
+/autom4te.cache
+/aclocal.m4
+/compile
+/configure
+/depcomp
+/install-sh
+/missing
+/stamp-h1
+/ar-lib
+
+# End of template. Additional autoconf and automake files follow.
+
+Makefile
+/config.guess
+/config.h
+/config.h.in
+/config.log
+/config.status
+/config.sub
+.deps
+/a.out
+/a.out.js
+/a.wasm
+
+# Compiled files
+
+*.o
+*.a
+*.map
+/src/dosbox
+/src/dosbox.exe
+/src/dosbox.js
+/src/dosbox.html
+/src/dosbox.html.mem
+/src/dosbox.js.orig.js
+/src/dosbox.js.tmp.js
+/src/dosbox.asm.js
+/src/dosbox.wasm
+/src/dosbox.wast
+
+# Miscellaneous files
+
+*~
+/include/version.h
+
+# --- whereq-dosbox additions (native baseline + Android port) ---
+
+# rootless dev toolchain (downloaded .deb files + extracted sysroot)
+/toolchain/pkgs/
+/toolchain/sysroot/
+
+# out-of-tree native/autotools build
+/build/
+
+# benchmark scratch dirs
+/bench/run/
+/bench/rt/
+
+# Android build outputs
+/android/.cxx/
+/android/build/
+/android/app/build/
+/android/local.properties
+/android/.gradle/
+
+# Signing material - never commit these
+/android/keystore.properties
+*.keystore
+*.jks
+
+# third-party sources: fetched by third_party/fetch-sdl2.sh, not committed
+/third_party/SDL2-*/
+/third_party/*.tar.gz

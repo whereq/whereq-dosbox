@@ -1,0 +1,7 @@
+// Root project of the whereq-dosbox Android build.
+//
+// The app has no dependencies at all - SDL2 is statically linked into
+// libdosbox.so and the Java side only uses the Android framework.
+plugins {
+    id 'com.android.application' version '8.1.4' apply false
+}

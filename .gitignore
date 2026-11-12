@@ -79,6 +79,10 @@ Makefile
 *.keystore
 *.jks
 
+# Python bytecode
+__pycache__/
+*.pyc
+
 # third-party sources: fetched by third_party/fetch-sdl2.sh, not committed
 /third_party/SDL2-*/
 /third_party/*.tar.gz

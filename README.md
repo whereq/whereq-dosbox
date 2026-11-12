@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="resources/whereq-dosbox-logo.png" alt="WhereQ-DOSBox" width="320">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="resources/whereq-dosbox-logo-transparent.png">
+    <img src="resources/whereq-dosbox-logo.png" alt="WhereQ-DOSBox" width="320">
+  </picture>
 </p>
 
 <h1 align="center">WhereQ-DOSBox</h1>

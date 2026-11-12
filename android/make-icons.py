@@ -127,6 +127,48 @@ def fit(mark, box):
     return mark.resize(size, Image.LANCZOS)
 
 
+def trim_logo(im, transparent=False, max_width=768, pad_ratio=0.04):
+    """Turn the square artwork into an actual logo.
+
+    The artwork is a full-bleed square: a dark navy panel with the '>_'
+    mark, the 'WD' wordmark and the blue swoosh. A logo wants the empty
+    margins gone - the artwork cropped to what is actually drawn.
+
+    With transparent=False the navy panel is kept, which is what the README
+    needs: the drawing is white, so on a white page it would be invisible
+    without the panel behind it. With transparent=True the panel is turned
+    into alpha, which is what a dark background wants.
+
+    The alpha channel comes from the luminance: the navy panel peaks at
+    V=52, while the mark, the wordmark and the swoosh are all bright, and
+    the glow around the mark sits in between. So one ramp separates the
+    drawing from its panel, and the glow fades out instead of ending in a
+    hard edge.
+    """
+    value = im.convert("L")
+    alpha = value.point(lambda v: 0 if v < 48 else min(255, (v - 48) * 3))
+
+    # crop to what is actually drawn, with a little breathing room
+    bbox = alpha.point(lambda x: 255 if x > 8 else 0).getbbox()
+    if not bbox:
+        sys.exit("could not find the logo in the artwork")
+    pad = int(max(bbox[2] - bbox[0], bbox[3] - bbox[1]) * pad_ratio)
+    box = (max(0, bbox[0] - pad), max(0, bbox[1] - pad),
+           min(im.size[0], bbox[2] + pad), min(im.size[1], bbox[3] + pad))
+
+    logo = im.convert("RGBA").crop(box)
+    if transparent:
+        logo.putalpha(alpha.crop(box))
+    else:
+        logo.putalpha(255)
+
+    if logo.size[0] > max_width:
+        scale = max_width / float(logo.size[0])
+        logo = logo.resize(
+            (max_width, max(1, int(round(logo.size[1] * scale)))), Image.LANCZOS)
+    return logo
+
+
 def circular(im):
     """Cut a circle out of a square image."""
     mask = Image.new("L", im.size, 0)
@@ -176,6 +218,11 @@ def main():
     mark = extract_mark(im)
     print("mark: %dx%d" % mark.size)
 
+    logo = trim_logo(im)
+    print("logo: %dx%d (trimmed)" % logo.size)
+    logo_alpha = trim_logo(im, transparent=True)
+    print("logo (transparent): %dx%d" % logo_alpha.size)
+
     written = []
     changed = []
 
@@ -209,11 +256,15 @@ def main():
         '</resources>\n' % bg
     )
 
-    # the logo the README shows - the full artwork, but small enough for a
-    # web page (the 4k original in resources/ is far too heavy to inline)
+    # the logos the README shows: the artwork trimmed to the drawing. The
+    # navy one keeps the panel, because the drawing is white and would be
+    # invisible on a white page; the transparent one is for a dark
+    # background. The 4k original in resources/ stays untouched - it is the
+    # source, these are what gets shown.
     readme_logo = os.path.join(RES, "whereq-dosbox-logo.png")
-    logo_blob = encode(im.resize((512, 512), Image.LANCZOS).convert("RGB"))
-    written.append((readme_logo, logo_blob))
+    written.append((readme_logo, encode(logo)))
+    readme_logo_alpha = os.path.join(RES, "whereq-dosbox-logo-transparent.png")
+    written.append((readme_logo_alpha, encode(logo_alpha)))
 
     for path, data in written:
         blob = data if isinstance(data, bytes) else encode(data)

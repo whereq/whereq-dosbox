@@ -26,30 +26,30 @@ resolve inside the app sandbox.
 
 ## App icon
 
-The launcher icon comes from `resources/whereq-dosbox-3.png` at the repo root.
-It is pre-rendered into the Android resource tree:
+The launcher icon is generated from the logo in `resources/` at the repo root.
+`android/make-icons.py` renders it into the Android resource tree:
 
 | Asset | What it is |
 |---|---|
 | `res/mipmap-*/ic_launcher.png` | legacy launcher icon, 48/72/96/144/192 px |
 | `res/mipmap-*/ic_launcher_round.png` | the same art with a circular mask |
-| `res/mipmap-*/ic_launcher_foreground.png` | adaptive-icon foreground: the art inside the 72dp safe zone of a 108dp canvas |
-| `res/mipmap-anydpi-v26/ic_launcher.xml` | adaptive icon (API 26+): black background + the foreground above |
-| `res/values/colors.xml` | `ic_launcher_background`, the black of the artwork |
+| `res/mipmap-*/ic_launcher_foreground.png` | adaptive-icon foreground: the `>_` mark inside the 72dp safe zone of a 108dp canvas |
+| `res/mipmap-anydpi-v26/ic_launcher.xml` | adaptive icon (API 26+): the navy of the artwork + the foreground above |
+| `res/values/colors.xml` | `ic_launcher_background`, the navy sampled from the artwork |
 
 The manifest points at them with `android:icon="@mipmap/ic_launcher"` and
 `android:roundIcon="@mipmap/ic_launcher_round"`.
 
-To change the icon, replace `resources/whereq-dosbox-1.png` and re-render the
+To change the icon, put the new artwork into `resources/` and re-render the
 mipmaps (Pillow is enough):
 
 ```sh
-python3 - <<'EOF'
-from PIL import Image
-im = Image.open('resources/whereq-dosbox-1.png').convert('RGB')
-...  # crop to the artwork, square it, resize into the mipmap densities
-EOF
+bin/build.sh icons                                   # the normal path
+python3 android/make-icons.py --check                # is everything in sync?
+python3 android/make-icons.py --source resources/other-logo.png
 ```
+
+Do not edit the generated PNGs by hand — they are overwritten on the next run.
 
 ## Prerequisites
 
@@ -71,6 +71,13 @@ bootstrap steps:
 git clone git@github.com:whereq/whereq-dosbox.git
 cd whereq-dosbox
 
+bin/build.sh bootstrap                  # SDL2 + toolchain, see below
+bin/build.sh all                         # native + android + apk
+```
+
+or, without the wrapper:
+
+```sh
 ./third_party/fetch-sdl2.sh          # SDL2 2.30.0 sources -> third_party/
 ./toolchain/bootstrap-sysroot.sh     # rootless toolchain  -> toolchain/sysroot/
 . toolchain/env.sh                   # cmake / nasm / m4 / pkg-config on PATH
@@ -78,6 +85,10 @@ cd whereq-dosbox
 ./android/build-android.sh           # libdosbox.so for all three ABIs
 ./android/build-apk.sh               # build/apk/whereq-dosbox-debug.apk
 ```
+
+[`BUILDING.md`](../BUILDING.md) has every build scenario with a command you
+can paste — the release APK, the Gradle path, the launcher icons and the
+version bump.
 
 `bootstrap-sysroot.sh` unpacks the Ubuntu `.deb` files the *desktop* build
 needs (autoconf/automake/m4, pkg-config, nasm, SDL2 headers, ncurses,
@@ -117,9 +128,9 @@ cmake --build build/android/arm64-v8a -j"$(nproc)"
 
 | ABI | artifact | size (stripped) |
 |---|---|---|
-| arm64-v8a | ELF64 aarch64 | 4,753,376 B |
-| armeabi-v7a | ELF32 ARM EABI5 | 3,470,108 B |
-| x86_64 | ELF64 x86-64 | 4,991,632 B (emulator only) |
+| arm64-v8a | ELF64 aarch64 | 4,734,600 B |
+| armeabi-v7a | ELF32 ARM EABI5 | 3,450,388 B |
+| x86_64 | ELF64 x86-64 | 4,972,336 B (emulator only) |
 
 All export `SDL_main` (the entry point SDL2's `SDLActivity` calls through
 `SDL.nativeMain()`) and `JNI_OnLoad`, and link against nothing but the

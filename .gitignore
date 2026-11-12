@@ -51,6 +51,9 @@ Makefile
 *~
 /include/version.h
 
+# NTFS alternate-data-stream markers left behind by browser downloads
+:*:Zone.Identifier
+
 # --- whereq-dosbox additions (native baseline + Android port) ---
 
 # rootless dev toolchain (downloaded .deb files + extracted sysroot)

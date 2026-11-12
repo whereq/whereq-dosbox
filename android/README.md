@@ -26,7 +26,7 @@ resolve inside the app sandbox.
 
 ## App icon
 
-The launcher icon comes from `resources/whereq-dosbox-1.png` at the repo root.
+The launcher icon comes from `resources/whereq-dosbox-3.png` at the repo root.
 It is pre-rendered into the Android resource tree:
 
 | Asset | What it is |

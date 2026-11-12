@@ -1,8 +1,15 @@
-whereq-dosbox
-=============
+<p align="center">
+  <img src="resources/whereq-dosbox-3.png" alt="WhereQ-DOSBox" width="320">
+</p>
 
-A native **Android** port of DOSBox — the emulator core runs as
-`libdosbox.so` inside an APK, not in a browser.
+<h1 align="center">WhereQ-DOSBox</h1>
+
+<p align="center">
+  A native <b>Android</b> port of DOSBox — the emulator core runs as
+  <code>libdosbox.so</code> inside an APK, not in a browser.
+</p>
+
+---
 
 The upstream project this is based on is [Em-DOSBox][em-dosbox], the
 Emscripten/web build of DOSBox r4305 by [Boris Gjenero][dreamlayers]. The

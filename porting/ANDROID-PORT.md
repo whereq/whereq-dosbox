@@ -616,6 +616,113 @@ specific change is fenced by `#if defined(__ANDROID__)`.
 
 ---
 
+## 7b. N6 — the game launcher: game bundles on the phone  ✅ DONE
+
+### What was built
+
+A **Games** button in the on-screen keyboard opens a panel that lists the
+installed bundles and starts them. A bundle is a `.zip` archive with a DOS
+game in it.
+
+| | |
+|---|---|
+| `GameBundle.java` | the model: folder, name, start file, size |
+| `GameLibrary.java` | unpacking, the manifest, the entry point guess |
+| `GameLauncherView.java` | the panel over the emulator |
+| `BundleFolder.java` | reads a folder the user picked |
+| `DosboxTyper.java` | types a command into the running DOSBox |
+
+### Three ways to get a bundle onto the phone
+
+| | |
+|---|---|
+| **Install a game bundle (.zip)** | `ACTION_OPEN_DOCUMENT`, with `EXTRA_INITIAL_URI` pointing at the download folder |
+| **Install all bundles from a folder** | `ACTION_OPEN_DOCUMENT_TREE`, every `.zip` below the chosen folder is unpacked |
+| **Open with WhereQ-DOSBox** | an `ACTION_VIEW` intent for `application/zip` |
+
+No storage permission is used. `READ_EXTERNAL_STORAGE` is **gone** from
+Android (it is not in the platform any more, API 37), so the app does not
+ask for it — the system picker hands out the access instead.
+
+### The file picker needs a MIME type
+
+The first version of the intent carried only `EXTRA_MIME_TYPES` and no
+type. The intent then did not resolve at all and the picker never opened —
+the filter of the system picker declares a type, and an intent without one
+does not match it. `setType("*/*")` plus `EXTRA_MIME_TYPES` fixes it: the
+picker opens and shows the archives.
+
+### How a game is started
+
+The app types the DOS path of the bundle's `RUN.BAT` into the running
+DOSBox — the same path the on-screen keyboard uses. Ctrl+Alt+Del is not an
+option: `Reboot_Handler` in `src/ints/bios.cpp` quits DOSBox. The characters
+go 45 ms apart, because the BIOS key buffer holds 32 keys and drops the
+rest.
+
+`RUN.BAT` switches to the game folder and starts the program:
+
+```
+@ECHO OFF
+C:
+CD \GAMES\G1
+PLAY.BAT
+```
+
+### The trap: DOSBox does not see the files that were installed later
+
+DOSBox keeps a listing of every directory of a drive, and the listing of
+the C: drive was taken when DOSBox started. A bundle that is installed
+afterwards is not in it — `DIR` in the game folder showed *0 File(s)*, and a
+program that was asked for by its lower case name was not found
+(`Illegal command: play.bat.`).
+
+Two things had to give:
+
+1. **The folder is `GAMES`, in upper case.** DOSBox looks a path up in upper
+   case, and the file system of the phone is case sensitive. `C:\GAMES` and
+   a folder called `games` are two different folders there.
+2. **The files are stored under their DOS name** — upper case, eight
+   characters plus three, the way DOS 3.3 kept them. DOSBox shortens every
+   name it is given the same way, so a program that asks for `RESOURCE.CFG`
+   ends up at `RESOURC.CFG` — which is exactly where the file is. This is
+   what makes the lookup work without a listing.
+
+The bundles of the collection were checked against this: 1887 of the 1898
+archives have a start file in the root of the archive, and none of them has
+a space or a non-ASCII character in that name. 74 % of the bundles need no
+shortening at all, 24 % have names that DOS would shorten, and 22 bundles
+have two files that want the same short name — those get a `~1` suffix, the
+way DOS does it.
+
+### The entry point is a guess
+
+Most bundles of the collection start with `play.bat`, `run.bat` or
+`setup.bat`; others have nothing but the program itself. The launcher
+prefers the well known batch files, then any batch file, then the biggest
+program of the bundle — and **Start file…** lets the user pick another one.
+
+### Verified on the emulator
+
+`F1赛车1994` (F1 Formula One Championship) and `创世纪8` (Ultima VIII) were
+installed from their archives and started with **Play**:
+
+* `porting/screenshots/android-n6-game-launcher.png` — the launcher with the
+  installed bundles
+* `porting/screenshots/android-n6-f1-running.png` — F1 Formula One
+* `porting/screenshots/android-n6-ultima8-running.png` — Ultima VIII
+* `porting/screenshots/android-n6-toolbar.png` — the keyboard, see below
+
+### The keyboard was too wide
+
+The toolbar of the on-screen keyboard had 21 keys of a fixed width, which
+is more than the width of the screen in landscape. The last key was cut off
+and could not be clicked. The toolbar now weighs its keys, so the strip
+always fills the width exactly, and the function keys moved into the panel
+where they already were.
+
+---
+
 ## 8. Release (production) APK
 
 The debug build is signed with an auto-generated key and is
@@ -764,8 +871,12 @@ installation and no dependency download.
    (`onPause`/`onResume` must not corrupt emulator state). The Gradle project
    (`android/app/build.gradle`) exists and is verified equivalent to the
    no-Gradle build (see section 8), but it is still not the canonical path.
-2. **Storage** — `chdir` to the app-private files dir is done; SAF-based
-   import/export for game bundles is still missing.
+2. **Storage** — `chdir` to the app-private files dir is done. Game
+   bundles are imported with the system file and folder pickers and with
+   the "open with" intent (see section 7b) — no storage permission, since
+   Android does not have `READ_EXTERNAL_STORAGE` any more. Still missing:
+   export of a bundle back to the phone, and a way to run a bundle that
+   ships its own `dosbox.conf` (it would need a restart of DOSBox).
 3. **Input** — touch (as a DOS mouse) and an on-screen keyboard are done
    (see section 7). Still missing: gamepad mapping (the tree references *no*
    `SDL_CONTROLLER*` symbols at all), an on-screen joystick for the

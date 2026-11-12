@@ -17,6 +17,8 @@
 #   ./android/run-emulator.sh log         dump logcat
 #   ./android/run-emulator.sh shell CMD   run a shell command
 #   ./android/run-emulator.sh boot        boot the emulator and wait for it
+#   ./android/run-emulator.sh push LOCAL REMOTE
+#                                          copy a file onto the device
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -118,6 +120,20 @@ do_start() {
   wadb shell am start -n "$ACT"
 }
 
+do_push() {
+  local src="$1" dst="$2"
+  [ -f "$src" ] || { echo "missing $src" >&2; exit 1; }
+  # adb reads the local path on the Windows side, so the file has to be
+  # reachable from C:. Everything under the WSL home is copied over first.
+  local base win
+  base="$(basename "$src")"
+  win="C:\\Users\\googo\\$base"
+  cp "$src" "/mnt/c/Users/googo/$base"
+  # adb runs on the Windows side, so it needs a Windows path.
+  wadb push "$win" "$dst" >/dev/null
+  echo "pushed $base -> $dst"
+}
+
 do_shot() {
   out="${1:-$ROOT/build/apk/screen.png}"
   wadb shell screencap -p /sdcard/_shot.png
@@ -133,7 +149,8 @@ case "${1:-install}" in
   clear)   do_clear ;;
   start)   do_start ;;
   shot)    shift; do_shot "$@" ;;
+  push)    shift; do_push "$@" ;;
   log)     wadb logcat -d ;;
   shell)   shift; wadb shell "$@" ;;
-  *)       echo "usage: $0 {boot|install|reinstall|clear|start|shot|log|shell}" >&2; exit 2 ;;
+  *)       echo "usage: $0 {boot|install|reinstall|clear|start|shot|push|log|shell}" >&2; exit 2 ;;
 esac

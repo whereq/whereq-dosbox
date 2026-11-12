@@ -48,6 +48,11 @@ letterboxing, touch moves the DOS mouse to the computed cell, and the
 on-screen keyboard types into DOSBox with no upstream patch
 (`SDL_PushEvent` → mapper → `KEYBOARD_AddKey`).
 
+The game launcher was verified with the same emulator: a bundle was picked
+with the system file picker, unpacked, started with **Play**, and both
+`F1赛车1994` (F1 Formula One Championship) and `创世纪8` (Ultima VIII) ran
+in the emulator.
+
 | | |
 |---|---|
 | Emulator core | DOSBox r4305 (SDL2 branch) |
@@ -55,6 +60,36 @@ on-screen keyboard types into DOSBox with no upstream patch
 | Toolchain | NDK r27 + CMake; also builds a plain desktop Linux baseline |
 | Version scheme | `v{major}.{minor}.{patch}.{build}` — see `bin/release.sh` |
 | APK size | ~5.3 MB with all three ABIs |
+
+Games on the phone
+------------------
+
+The **Games** button in the on-screen keyboard opens the game launcher. It
+installs a DOS game bundle (a `.zip` archive) on the phone and starts it.
+
+There are three ways to get a bundle onto the phone:
+
+| | |
+|---|---|
+| **Install a game bundle (.zip)** | the system file picker; it opens in the download folder, where a bundle usually is |
+| **Install all bundles from a folder** | the system folder picker; every `.zip` in the chosen folder is unpacked at once |
+| **Open with WhereQ-DOSBox** | a `.zip` that is tapped in a file manager can be opened with WhereQ-DOSBox directly |
+
+No storage permission is needed for any of them — the system picker hands
+out the access, and the app only ever sees what the user picked.
+
+Every bundle is unpacked into `C:\GAMES\<n>` of the mounted C: drive and
+gets a `RUN.BAT` that switches to the game folder and starts the program.
+The start file is the one the launcher guessed — a `play.bat`, `run.bat` or
+`setup.bat` of the collection, otherwise the biggest program of the bundle —
+and **Start file…** picks another one.
+
+The files are stored under their DOS name: upper case, eight characters plus
+three, the way DOS 3.3 kept them. That is not cosmetic. DOSBox only sees a
+folder when it lists it, and the listing of the drive was taken when DOSBox
+started, so a bundle that is installed afterwards is not in it. A file whose
+name DOS can spell is found all the same — and a program that asks for
+`RESOURCE.CFG` ends up at `RESOURC.CFG`, exactly as it did on a real DOS.
 
 Layout
 ------

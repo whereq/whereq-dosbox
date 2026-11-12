@@ -34,14 +34,29 @@
             android:name="com.whereq.dosbox.WhereqDosboxActivity"
             android:label="@string/app_name"
             android:alwaysRetainTaskState="true"
-            android:launchMode="singleInstance"
+            android:launchMode="singleTop"
             android:configChanges="layoutDirection|locale|orientation|uiMode|screenLayout|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation"
             android:preferMinimalPostProcessing="true"
             android:exported="true">
 
+            <!-- singleTop, not singleInstance: the game launcher opens the
+                 system file picker with startActivityForResult(), and a
+                 singleInstance activity lives in a task of its own, which
+                 keeps the picker's result from coming back. With a single
+                 activity in the app, singleTop gives the same "only one
+                 instance" behaviour without that problem. -->
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- A game bundle can also be opened straight from a file
+                 manager: pick a .zip and choose WhereQ-DOSBox. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/zip" />
             </intent-filter>
 
             <!-- Let Android know that we can handle some USB devices -->

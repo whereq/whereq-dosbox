@@ -57,7 +57,10 @@ public class VirtualKeyboardView extends LinearLayout {
     private static final int COLOR_TOOLBAR = 0xC0202024;
     private static final int COLOR_KEY = 0xFF3C4043;
     private static final int COLOR_KEY_ARMED = 0xFF1A73E8;
+    /** The launcher button is an action, not a key - it gets its own colour. */
+    private static final int COLOR_KEY_ACCENT = 0xFF8A6D00;
     private static final int COLOR_TEXT = 0xFFE8EAED;
+    private static final int COLOR_TEXT_ON_ACCENT = 0xFFFFF3D6;
 
     private static final int DP_KEY_HEIGHT = 34;
     private static final int DP_TOOL_KEY_HEIGHT = 30;
@@ -66,6 +69,26 @@ public class VirtualKeyboardView extends LinearLayout {
 
     /** Key name of the shift key - used to type the shifted characters. */
     private static final String SHIFT = "lshift";
+
+    /**
+     * Told when the user taps the launcher button.
+     *
+     * <p>The keyboard does not know about the game launcher; it only reports
+     * that the button was pressed.
+     */
+    public interface OnGamesRequestedListener {
+        void onGamesRequested();
+    }
+
+    /** Set by the activity; may be null, then the button does nothing. */
+    private OnGamesRequestedListener launcherListener;
+
+    /**
+     * Installs the listener that is told about a tap on the launcher button.
+     */
+    public void setOnGamesRequestedListener(OnGamesRequestedListener listener) {
+        launcherListener = listener;
+    }
 
     /** key name -> numeric SDL scancode. */
     private final Map<String, Integer> scancodes = new HashMap<String, Integer>();
@@ -233,6 +256,15 @@ public class VirtualKeyboardView extends LinearLayout {
 
     /**
      * Builds the always visible toolbar.
+     *
+     * <p>The keys share the width of the screen (weighted layout) instead of
+     * having a fixed width. With a fixed width the strip was wider than the
+     * screen, so the last key was cut off at the right edge and could not be
+     * reached. A weighted row fills the width exactly, in every orientation.
+     *
+     * <p>The function keys are not in the toolbar: the foldable panel already
+     * has a scrollable row with all of them, and the toolbar is for the keys
+     * a DOS program needs while it is running.
      */
     private void buildToolbar() {
         LinearLayout bar = new LinearLayout(getContext());
@@ -240,7 +272,7 @@ public class VirtualKeyboardView extends LinearLayout {
         bar.setPadding(dp(4), dp(4), dp(4), dp(4));
         bar.setBackgroundColor(COLOR_TOOLBAR);
 
-        toggleButton = makeButton("\u2328", "", "f", "k", DP_TOOL_KEY_HEIGHT);
+        toggleButton = makeButton("\u2328", "", "w1", "k", DP_TOOL_KEY_HEIGHT);
         toggleButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 togglePanel();
@@ -248,34 +280,40 @@ public class VirtualKeyboardView extends LinearLayout {
         });
         bar.addView(toggleButton);
 
+        // Opens the game launcher. It is not a key, so it gets the accent
+        // colour - it must not look like something that types a character.
+        TextView games = makeButton("Games", "", "w1.6", "k", DP_TOOL_KEY_HEIGHT);
+        games.setTextColor(COLOR_TEXT_ON_ACCENT);
+        games.setBackground(keyBackground(COLOR_KEY_ACCENT));
+        games.setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                if (launcherListener != null) {
+                    launcherListener.onGamesRequested();
+                }
+            }
+        });
+        bar.addView(games);
+
         String[][] tools = {
-                {"Esc", "esc", "f", "k"},
-                {"Tab", "tab", "f", "k"},
-                {"Ctrl", "lctrl", "f", "m"},
-                {"Alt", "lalt", "f", "m"},
-                {"Shift", "lshift", "f", "m"},
-                {"Ent", "enter", "f", "k"},
-                {"Bks", "bspace", "f", "k"},
-                {"Space", "space", "f", "k"},
-                {"\u2190", "left", "f", "k"},
-                {"\u2193", "down", "f", "k"},
-                {"\u2192", "right", "f", "k"},
-                {"\u2191", "up", "f", "k"},
-                {"F1", "f1", "f", "k"},
-                {"F2", "f2", "f", "k"},
-                {"F3", "f3", "f", "k"},
-                {"F4", "f4", "f", "k"},
-                {"F5", "f5", "f", "k"},
-                {"F6", "f6", "f", "k"},
-                {"F7", "f7", "f", "k"},
-                {"F8", "f8", "f", "k"},
+                {"Esc", "esc", "w1.1", "k"},
+                {"Tab", "tab", "w1.1", "k"},
+                {"Ctrl", "lctrl", "w1.2", "m"},
+                {"Alt", "lalt", "w1.1", "m"},
+                {"Shift", "lshift", "w1.3", "m"},
+                {"Ent", "enter", "w1.2", "k"},
+                {"Bks", "bspace", "w1.2", "k"},
+                {"Space", "space", "w2.4", "k"},
+                {"\u2190", "left", "w1", "k"},
+                {"\u2193", "down", "w1", "k"},
+                {"\u2192", "right", "w1", "k"},
+                {"\u2191", "up", "w1", "k"},
         };
         for (String[] tool : tools) {
             bar.addView(makeKey(tool[0], tool[1], tool[2], tool[3], DP_TOOL_KEY_HEIGHT));
         }
 
         // Switches the symbol row of the panel on and off.
-        TextView symbols = makeButton("\u00ab", "", "f", "k", DP_TOOL_KEY_HEIGHT);
+        TextView symbols = makeButton("\u00ab", "", "w1", "k", DP_TOOL_KEY_HEIGHT);
         symbols.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 toggleSymbols();
@@ -283,10 +321,10 @@ public class VirtualKeyboardView extends LinearLayout {
         });
         bar.addView(symbols);
 
-        HorizontalScrollView scroll = new HorizontalScrollView(getContext());
-        scroll.setHorizontalScrollBarEnabled(false);
-        scroll.addView(bar);
-        addView(scroll);
+        // The bar is a direct child of the keyboard, so it gets the full
+        // width of the screen and the weighted keys fill it exactly.
+        addView(bar, new LayoutParams(LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT));
     }
 
     /* -------------------------------------------------------------- rows */

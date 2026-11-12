@@ -8,7 +8,21 @@
 #     (installed without root via "apt-get download" + "dpkg-deb -x")
 #   * cmake/ninja from the Android SDK (not installed system-wide here)
 #   * ANDROID_NDK_HOME / ANDROID_SDK_ROOT for the NDK build
-_TOOLCHAIN="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+
+# This file has to be SOURCED, not executed: it exports variables into the
+# current shell. Run as a program it would export them into a subshell that
+# exits immediately, leaving the environment unchanged - doing nothing at all,
+# silently. Catch that here instead of letting the build fail later on a
+# missing cmake or NDK.
+case "$0" in
+    */env.sh|env.sh)
+        echo "toolchain/env.sh must be sourced, not executed:" >&2
+        echo "    . toolchain/env.sh" >&2
+        exit 1
+        ;;
+esac
+
+_TOOLCHAIN="$(cd "$(dirname "${BASH_SOURCE:-$0}")" && pwd)"
 export _TOOLCHAIN
 SYSROOT="$_TOOLCHAIN/sysroot"
 

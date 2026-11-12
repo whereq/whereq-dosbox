@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- The background colour of the launcher icon: the black of the
-         WhereQ-DOSBox artwork, so the adaptive icon has no visible seam
-         between the background layer and the foreground artwork. -->
-    <color name="ic_launcher_background">#FF000000</color>
+    <!-- sampled from the WhereQ logo by android/make-icons.py -->
+    <color name="ic_launcher_background">#0D0D1F</color>
 </resources>

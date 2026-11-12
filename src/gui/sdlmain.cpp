@@ -259,8 +259,11 @@ struct SDL_Block {
 	Bit32u focus_ticks;
 #endif
 	// state of alt-keys for certain special handlings
-	Bit8u laltstate;
-	Bit8u raltstate;
+	// true while the key is held down, false when it is released. This is a
+	// normalized flag on purpose: the SDL event type is not a bool, and the
+	// SDL1 (SDL_KEYDOWN == 1) and SDL2 (SDL_KEYDOWN == 768) values differ.
+	bool laltstate;
+	bool raltstate;
 };
 
 static SDL_Block sdl;
@@ -1186,10 +1189,10 @@ dosurface:
 			int outw = 0, outh = 0, winw = 0, winh = 0;
 			SDL_GetRendererOutputSize(sdl.renderer, &outw, &outh);
 			SDL_GetWindowSize(sdl.window, &winw, &winh);
-			LOG_MSG("Android texture output: renderer=%dx%d window=%dx%d clip=%d,%d %dx%d texture=%dx%d",
+			LOG_MSG("Android texture output: renderer=%dx%d window=%dx%d clip=%d,%d %dx%d texture=%ux%u",
 			        outw, outh, winw, winh,
 			        sdl.clip.x, sdl.clip.y, sdl.clip.w, sdl.clip.h,
-			        width, height);
+			        (unsigned int)width, (unsigned int)height);
 		}
 #endif
 		break;
@@ -2482,8 +2485,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 }
 
 void GFX_LosingFocus(void) {
-	sdl.laltstate=SDL_KEYUP;
-	sdl.raltstate=SDL_KEYUP;
+	sdl.laltstate=false;
+	sdl.raltstate=false;
 	MAPPER_LosingFocus();
 }
 
@@ -2596,8 +2599,8 @@ static void android_handle_touch(SDL_TouchFingerEvent *finger) {
 		logged++;
 		int mdx = -1, mdy = -1;
 		Mouse_GetPosition(&mdx, &mdy);
-		LOG_MSG("Android touch: type=%d id=%d px=%.0f,%.0f dos=%.3f,%.3f -> mouse=%d,%d",
-			finger->type, finger->fingerId, px, py, rx, ry, mdx, mdy);
+		LOG_MSG("Android touch: type=%d id=%lld px=%.0f,%.0f dos=%.3f,%.3f -> mouse=%d,%d",
+			(int)finger->type, (long long)finger->fingerId, px, py, rx, ry, mdx, mdy);
 	}
 }
 #endif
@@ -2760,10 +2763,10 @@ void GFX_Events() {
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:
 			// ignore event alt+tab
-			if (event.key.keysym.sym==SDLK_LALT) sdl.laltstate = event.key.type;
-			if (event.key.keysym.sym==SDLK_RALT) sdl.raltstate = event.key.type;
+			if (event.key.keysym.sym==SDLK_LALT) sdl.laltstate = (event.key.type == SDL_KEYDOWN);
+			if (event.key.keysym.sym==SDLK_RALT) sdl.raltstate = (event.key.type == SDL_KEYDOWN);
 			if (((event.key.keysym.sym==SDLK_TAB)) &&
-				((sdl.laltstate==SDL_KEYDOWN) || (sdl.raltstate==SDL_KEYDOWN))) break;
+				(sdl.laltstate || sdl.raltstate)) break;
 			// This can happen as well.
 			if (((event.key.keysym.sym == SDLK_TAB )) && (event.key.keysym.mod & KMOD_ALT)) break;
 			// ignore tab events that arrive just after regaining focus. (likely the result of alt-tab)
@@ -3296,8 +3299,8 @@ int main(int argc, char* argv[]) {
 	if( SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0 ) LOG_MSG("Failed to init joystick support");
 #endif
 
-	sdl.laltstate = SDL_KEYUP;
-	sdl.raltstate = SDL_KEYUP;
+	sdl.laltstate = false;
+	sdl.raltstate = false;
 
 #if !SDL_VERSION_ATLEAST(2, 0, 0) // Not relevant for SDL 2.0 at the moment
 #if defined (WIN32)

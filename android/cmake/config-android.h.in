@@ -38,8 +38,12 @@
 #define SIZEOF_UNSIGNED_CHAR 1
 #define SIZEOF_UNSIGNED_SHORT 2
 #define SIZEOF_UNSIGNED_INT 4
-#define SIZEOF_UNSIGNED_LONG 8
-#define SIZEOF_UNSIGNED_LONG_LONG 8
+/* These two must match the target ABI: "long" is 8 bytes on arm64-v8a and
+   x86_64, but only 4 bytes on armeabi-v7a and x86 (ILP32). DOSBox picks its
+   Bit64u/Bit64s typedefs from them, so a wrong value silently truncates the
+   64 bit x86 arithmetic (MUL/DIV/IMUL/IDIV, RDTSC) on 32 bit targets. */
+#define SIZEOF_UNSIGNED_LONG @DOSBOX_SIZEOF_UNSIGNED_LONG@
+#define SIZEOF_UNSIGNED_LONG_LONG @DOSBOX_SIZEOF_UNSIGNED_LONG_LONG@
 #define SIZEOF_INT_P @DOSBOX_SIZEOF_INT_P@
 
 /* bionic has all of these */

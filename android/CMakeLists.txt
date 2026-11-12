@@ -40,6 +40,19 @@ else()
 endif()
 
 # --------------------------------------------------------------- config.h --
+# The size of the C integer types has to follow the target ABI: "long" is 8
+# bytes on arm64-v8a/x86_64 (LP64) but only 4 bytes on armeabi-v7a/x86
+# (ILP32). Ask the compiler instead of guessing - DOSBox derives its
+# Bit64u/Bit64s typedefs from it and a wrong answer truncates the 64 bit x86
+# arithmetic in the CPU core.
+include(CheckTypeSize)
+check_type_size("long" DOSBOX_SIZEOF_UNSIGNED_LONG)
+check_type_size("long long" DOSBOX_SIZEOF_UNSIGNED_LONG_LONG)
+if(NOT DOSBOX_SIZEOF_UNSIGNED_LONG OR NOT DOSBOX_SIZEOF_UNSIGNED_LONG_LONG)
+    message(FATAL_ERROR "could not determine the size of long / long long")
+endif()
+message(STATUS "long = ${DOSBOX_SIZEOF_UNSIGNED_LONG} bytes, long long = ${DOSBOX_SIZEOF_UNSIGNED_LONG_LONG} bytes, int* = ${DOSBOX_SIZEOF_INT_P} bytes")
+
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/config-android.h.in"
     "${DOSBOX_GENERATED}/config.h"
@@ -107,7 +120,6 @@ else()
         INTERFACE_INCLUDE_DIRECTORIES "${DOSBOX_SDL2_INCLUDE_DIR}")
     set(DOSBOX_SDL2_TARGET SDL2::SDL2)
 endif()
-
 
 # ---------------------------------------------------------------- sources --
 # Mirrors the *_SOURCES lists of the upstream src/*/Makefile.am files.
@@ -276,6 +288,7 @@ target_compile_options(dosbox PRIVATE
     -Wno-sign-compare
     -Wno-format-truncation
     -fno-strict-aliasing)
+
 
 target_link_libraries(dosbox PRIVATE
     ${DOSBOX_SDL2_TARGET}

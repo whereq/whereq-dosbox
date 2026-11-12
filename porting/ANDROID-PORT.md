@@ -645,6 +645,35 @@ Three things make the release build different:
 3. **`d8 --release`**, which drops the debug information from the dex
    (99,320 B → 96,656 B).
 
+### The release key was rotated on 2026-11-11
+
+The keystore created on 2026-10-10 could not be opened any more — its store
+password was lost, and nothing on the machine recorded it (not the
+environment, not `android/keystore.properties`, not the shell history, not
+the Gradle daemon logs). The file itself was still a valid PKCS#12 store,
+so it was kept as `build/release.keystore.bak` and a new key was minted in
+its place.
+
+Rotating it was safe, because the old key had never signed anything that
+left this machine:
+
+| | old key | new key |
+|---|---|---|
+| file | `build/release.keystore.bak` | `build/release.keystore` |
+| alias | `whereq` | `whereq` |
+| certificate SHA-256 | `f3e3c14a730d74390720c3330096b6c8a8afb897a82870bb225137028f547e8e` | `b16b480d5a1ff6d35baff0b15fa3fc4b0ee815e500861fbff1b062c9bf7d3933` |
+| valid until | — | 2054-03-29 |
+| signed | one local 0.7.0 test APK | the 1.0.0.1 release APK |
+
+There is no GitHub release and no published APK asset, so no user install
+was signed with the old key and nothing lost its upgrade path. The only
+affected install is the one on the test emulator, which still runs the old
+0.7.0 build: it has to be uninstalled before the new key's APK can go in.
+
+**The certificate SHA-256 is the thing to record** — not the password. The
+password lives only with the owner, and a key whose password is lost is
+useless even though the file still looks fine.
+
 Verified on the emulator with the release APK:
 
 ```

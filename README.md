@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="resources/whereq-dosbox-3.png" alt="WhereQ-DOSBox" width="320">
+  <img src="resources/whereq-dosbox-logo.png" alt="WhereQ-DOSBox" width="320">
 </p>
 
 <h1 align="center">WhereQ-DOSBox</h1>
@@ -9,66 +9,99 @@
   <code>libdosbox.so</code> inside an APK, not in a browser.
 </p>
 
+<p align="center">
+  <img src="resources/screenshot-phone.jpg" alt="WhereQ-DOSBox running on an Android phone" width="760">
+</p>
+
+<p align="center">
+  <sub>The DOSBox welcome screen, a mounted drive and the on-screen keyboard —
+  touch moves the DOS mouse, the keys type into DOSBox.</sub>
+</p>
+
 ---
 
 The upstream project this is based on is [Em-DOSBox][em-dosbox], the
 Emscripten/web build of DOSBox r4305 by [Boris Gjenero][dreamlayers]. The
-DOSBox core here is imported verbatim from that tree and is **not** modified;
-every Android-specific change is fenced behind `#if defined(__ANDROID__)`
-(`include/mouse.h`, `src/gui/sdlmain.cpp`, `src/ints/mouse.cpp`).
+DOSBox core here comes from that tree and keeps its GPLv2 license, its
+`AUTHORS`, its `ChangeLog` and its per-file headers.
+
+The port touches the core in four places, all of them small and local:
+
+| Where | What |
+|---|---|
+| `src/gui/sdlmain.cpp` | the Android display, touch and on-screen keyboard paths, fenced behind `#if defined(__ANDROID__)` |
+| `include/mouse.h`, `src/ints/mouse.cpp` | the touch-to-DOS-mouse mapping, likewise fenced |
+| the product name | `DOSBox SVN` → `WhereQ-DOSBox` in the banner, the version string, the config and the generated headers |
+| `src/hardware/dbopl.cpp` | the two percussion modes are named in a switch, so clang stops warning about it — the behavior is unchanged |
+
+Everything else in `src/` and `include/` is the imported upstream code.
 
 Status
 ------
 
-The emulator core is untouched. Verified on an emulator (API 37, x86_64):
-DOSBox reaches the `C:\>` prompt, the picture is rendered through the SDL2
-texture path with aspect-correct letterboxing, touch moves the DOS mouse to
-the computed cell, and the on-screen keyboard types into DOSBox with no
-upstream patch (`SDL_PushEvent` → mapper → `KEYBOARD_AddKey`).
+Verified on an emulator (API 37, x86_64): DOSBox reaches the `C:\>` prompt,
+the picture is rendered through the SDL2 texture path with aspect-correct
+letterboxing, touch moves the DOS mouse to the computed cell, and the
+on-screen keyboard types into DOSBox with no upstream patch
+(`SDL_PushEvent` → mapper → `KEYBOARD_AddKey`).
 
 | | |
 |---|---|
-| Emulator core | DOSBox r4305 (SDL2 branch), unmodified |
+| Emulator core | DOSBox r4305 (SDL2 branch) |
 | Android target | `arm64-v8a`, `armeabi-v7a`, `x86_64`, minSdk 21 |
 | Toolchain | NDK r27 + CMake; also builds a plain desktop Linux baseline |
 | Version scheme | `v{major}.{minor}.{patch}.{build}` — see `bin/release.sh` |
+| APK size | ~5.3 MB with all three ABIs |
 
 Layout
 ------
 
 ```
-src/ include/ ...     the DOSBox core, as imported (GPLv2, unmodified)
+src/ include/ ...     the DOSBox core, as imported (GPLv2)
 android/              CMake/NDK project -> libdosbox.so, plus the APK
 native/               desktop Linux baseline build (VPATH, out of tree)
 bench/                CPU-core throughput probe
 toolchain/            rootless dev toolchain (no root, no sudo)
 third_party/          SDL2 sources, fetched by third_party/fetch-sdl2.sh
+resources/            the logo and the screenshot
 porting/              the porting log, benchmark notes and screenshots
-bin/                  release.sh
+bin/                  build.sh (every build scenario), release.sh
 ```
 
 Build
 -----
 
-A clone builds from scratch with two bootstrap steps; everything else is in
-the repository:
+Everything is driven by one script:
 
 ```sh
 git clone git@github.com:whereq/whereq-dosbox.git
 cd whereq-dosbox
 
-./third_party/fetch-sdl2.sh          # SDL2 2.30.0 sources -> third_party/
-./toolchain/bootstrap-sysroot.sh     # rootless toolchain -> toolchain/sysroot/
-. toolchain/env.sh
-
-./android/build-android.sh arm64-v8a # -> build/android/arm64-v8a/libdosbox.so
-./android/build-apk.sh               # -> build/apk/whereq-dosbox-debug.apk
-./native/build-native.sh             # -> build/install/bin/dosbox
+bin/build.sh doctor      # what is installed, what is already built
+bin/build.sh all         # bootstrap + native + android + apk
 ```
 
-`android/build-apk.sh` is the canonical build — it needs no Gradle
+That produces:
+
+```
+build/install/bin/dosbox                  the desktop baseline
+build/android/<abi>/libdosbox.so          the native library per ABI
+build/apk/whereq-dosbox-debug.apk         the debug APK
+```
+
+The individual steps are `bin/build.sh bootstrap | native | android | apk`,
+and each one delegates to the script that owns it
+(`third_party/fetch-sdl2.sh`, `toolchain/bootstrap-sysroot.sh`,
+`native/build-native.sh`, `android/build-android.sh`, `android/build-apk.sh`).
+
+`android/build-apk.sh` is the canonical APK build — it needs no Gradle
 installation and no dependency download. The Gradle project in
 `android/app/` produces an equivalent APK.
+
+**[BUILDING.md](BUILDING.md) has the full guide**: every build scenario with
+a command you can paste — the first build on a fresh clone, the release APK
+with its signing variables, the Gradle path, the launcher icons, the version
+bump and the benchmark.
 
 `porting/ANDROID-PORT.md` is the running log of the port: what was verified,
 what was corrected, and what is still open. `porting/BENCH-NOTES.md` has the
@@ -88,6 +121,16 @@ bin/release.sh --patch -m "..."
 Tags are `v{major}.{minor}.{patch}.{build}` — four numeric segments. The
 `android:versionCode` is the same four segments packed into a monotonically
 increasing integer.
+
+The production APK is signed with the release key, which is never committed:
+
+```sh
+export WHEREQ_RELEASE_STORE_PASS='<keystore password>'
+bin/build.sh apk --release
+```
+
+See [BUILDING.md](BUILDING.md#scenario-5--the-release-apk) for the signing
+variables and the verification commands.
 
 License
 -------

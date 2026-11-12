@@ -368,7 +368,7 @@ press is simply an SDL key event with the right scancode, pushed in through
 `DosboxNative.nativePushKey()`.
 
 Verified on the emulator: `ver` typed on the virtual keyboard prints
-`DOSBox version`, backspace deletes, sticky Shift produces upper case, and
+`WhereQ-DOSBox version`, backspace deletes, sticky Shift produces upper case, and
 taps move the DOS mouse to the computed cell.
 
 ## Feature set (Android equivalent of the native baseline)

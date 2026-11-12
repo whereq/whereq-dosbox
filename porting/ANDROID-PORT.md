@@ -577,7 +577,7 @@ the screen, so taps anywhere else still reach the emulator.
 
 ### Verified on the emulator
 
-* `ver` typed on the virtual keyboard → `DOSBox version` printed, and the
+* `ver` typed on the virtual keyboard → `WhereQ-DOSBox version` printed, and the
   backspace key deleted a character that was typed before it;
 * sticky Shift produced an upper-case `V`;
 * taps moved the DOS mouse to the computed position (table above), and a
@@ -657,7 +657,7 @@ flags=[ HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP KILL_AFTER_RESTORE ]
 
 No `DEBUGGABLE` in the flags, and the app runs exactly like the debug build
 — the DOSBox picture is letterboxed as before and the on-screen keyboard
-types `ver` → `DOSBox version`.
+types `ver` → `WhereQ-DOSBox version`.
 
 Signing schemes: v1 (JAR), v2 and v3 all verify, and the APK passes
 `zipalign -c -v 4`.

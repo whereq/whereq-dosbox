@@ -82,3 +82,7 @@ Makefile
 # third-party sources: fetched by third_party/fetch-sdl2.sh, not committed
 /third_party/SDL2-*/
 /third_party/*.tar.gz
+
+# Native libraries staged for the Gradle build by android/build-android.sh.
+# They are build output, not source - regenerate them with that script.
+/android/app/src/main/jniLibs/

@@ -6,7 +6,7 @@
 # Steps per ABI:
 #   1. SDL2 as a static PIC archive (skipped if already present)
 #   2. DOSBox -> libdosbox.so
-#   3. strip + copy into the Gradle jniLibs tree (when it exists)
+#   3. strip + copy into the Gradle jniLibs tree (when the Gradle module exists)
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -43,11 +43,14 @@ for ABI in "${ABIS[@]}"; do
   echo "--- $ABI ---"
   ls -la "$BUILD/libdosbox.so" "$BUILD/libdosbox.so.unstripped"
 
-  JNI="$ROOT/android/app/src/main/jniLibs/$ABI"
-  if [ -d "$(dirname "$JNI")" ]; then
-    mkdir -p "$JNI"
-    cp "$BUILD/libdosbox.so" "$JNI/"
-    echo "    -> copied to $JNI"
+  # Stage the library for the Gradle build. The jniLibs tree is build output
+  # (it is gitignored), so it is created here rather than expected to exist:
+  # check for the Gradle *module*, not for the directory we are about to make.
+  JNI_ROOT="$ROOT/android/app/src/main/jniLibs"
+  if [ -f "$ROOT/android/app/build.gradle" ]; then
+    mkdir -p "$JNI_ROOT/$ABI"
+    cp "$BUILD/libdosbox.so" "$JNI_ROOT/$ABI/"
+    echo "    -> copied to $JNI_ROOT/$ABI"
   fi
 done
 

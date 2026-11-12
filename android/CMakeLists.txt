@@ -121,6 +121,7 @@ else()
     set(DOSBOX_SDL2_TARGET SDL2::SDL2)
 endif()
 
+
 # ---------------------------------------------------------------- sources --
 # Mirrors the *_SOURCES lists of the upstream src/*/Makefile.am files.
 # Android-relevant exclusions are marked below.
@@ -289,6 +290,35 @@ target_compile_options(dosbox PRIVATE
     -Wno-format-truncation
     -fno-strict-aliasing)
 
+# The DOSBox core is vendored verbatim from the upstream 0.74 tree, which was
+# written for a much older compiler and trips over a number of checks that
+# modern clang added later. They are noise for this port:
+#   -Wformat                    DOSBox logs the 64 bit "Bitu" type with %d/%u
+#   -Wswitch                    BIOS/VGA mode enums handled in another branch
+#   -Wunused-private-field      upstream leftovers
+#   -Waddress-of-packed-member  the Adlib/OPL register structs
+#   -Wbitwise-instead-of-logical, -Wint-in-bool-context
+#   -Wmissing-braces, -Wnon-c-typedef-for-linkage
+# Patching the frozen upstream tree for them would only add noise to every
+# future DOSBox update, so they are switched off for the vendored sources
+# only. The code this port maintains - jni/ and the Android parts of
+# src/gui/sdlmain.cpp - is still compiled with the full warning set.
+set(DOSBOX_VENDORED_WARNINGS
+    -Wno-format
+    -Wno-switch
+    -Wno-unused-private-field
+    -Wno-address-of-packed-member
+    -Wno-bitwise-instead-of-logical
+    -Wno-int-in-bool-context
+    -Wno-missing-braces
+    -Wno-non-c-typedef-for-linkage)
+
+set(DOSBOX_VENDORED_SOURCES ${DOSBOX_SOURCES_ABS})
+list(REMOVE_ITEM DOSBOX_VENDORED_SOURCES
+    "${DOSBOX_ROOT}/android/jni/dosbox_android.cpp"
+    "${DOSBOX_ROOT}/src/gui/sdlmain.cpp")
+set_source_files_properties(${DOSBOX_VENDORED_SOURCES}
+    PROPERTIES COMPILE_OPTIONS "${DOSBOX_VENDORED_WARNINGS}")
 
 target_link_libraries(dosbox PRIVATE
     ${DOSBOX_SDL2_TARGET}

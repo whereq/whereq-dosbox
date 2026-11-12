@@ -48,7 +48,16 @@ if [ ! -f "$BUILD/config.status" ]; then
     "$@"
 fi
 
-make -j"$(nproc)"
+# The DOSBox core is vendored verbatim from the upstream 0.74 tree, which
+# trips over a number of modern compiler checks that have nothing to do with
+# this port: DOSBox logs the 64 bit "Bitu" type with %d/%x, takes the
+# address of members in packed structs and ignores the result of fread()/
+# write(). Same policy as the Android build (see android/CMakeLists.txt):
+# silence them here instead of patching the frozen upstream tree.
+NATIVE_CXXFLAGS="$(sed -n 's/^CXXFLAGS = //p' "$BUILD/Makefile" | head -1)"
+NATIVE_CXXFLAGS="$NATIVE_CXXFLAGS -Wno-format -Wno-address-of-packed-member -Wno-unused-result"
+
+make -j"$(nproc)" CXXFLAGS="$NATIVE_CXXFLAGS"
 make install
 
 echo "=== binary ==="

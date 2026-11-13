@@ -48,7 +48,7 @@ letterboxing, touch moves the DOS mouse to the computed cell, and the
 on-screen keyboard types into DOSBox with no upstream patch
 (`SDL_PushEvent` → mapper → `KEYBOARD_AddKey`).
 
-The game launcher was verified with the same emulator: a bundle was picked
+The bundle launcher was verified with the same emulator: a bundle was picked
 with the system file picker, unpacked, started with **Play**, and both
 `F1赛车1994` (F1 Formula One Championship) and `创世纪8` (Ultima VIII) ran
 in the emulator.
@@ -61,21 +61,23 @@ in the emulator.
 | Version scheme | `v{major}.{minor}.{patch}.{build}` — see `bin/release.sh` |
 | APK size | ~5.3 MB with all three ABIs |
 
-Games on the phone
+Files on the phone
 ------------------
 
 > **Want to try the app without building it?** The release APK is in
 > [`downloads/`](downloads/) — see [downloads/README.md](downloads/README.md)
 > for the install steps.
 
-The **Games** button in the on-screen keyboard opens the game launcher. It
-installs a DOS game bundle (a `.zip` archive) on the phone and starts it.
+The **File** button in the on-screen keyboard opens the bundle launcher. It
+installs a DOS bundle (a `.zip` archive) on the phone and starts it. The
+button says *File* and not *Games*, because a bundle can hold any DOS
+program — a game, a utility, a text mode application.
 
 There are three ways to get a bundle onto the phone:
 
 | | |
 |---|---|
-| **Install a game bundle (.zip)** | the system file picker; it opens in the download folder, where a bundle usually is |
+| **Install a bundle (.zip)** | the system file picker; it opens in the download folder, where a bundle usually is |
 | **Install all bundles from a folder** | the system folder picker; every `.zip` in the chosen folder is unpacked at once |
 | **Open with WhereQ-DOSBox** | a `.zip` that is tapped in a file manager can be opened with WhereQ-DOSBox directly |
 
@@ -116,7 +118,7 @@ cd examples/game-bundle
 
 The bundle zip is committed as well, so it can be taken straight from the
 repository. Copy it to the phone and open it with WhereQ-DOSBox (or pick it
-with *Install a game bundle (.zip)* in the **Games** screen). The launcher
+with *Install a bundle (.zip)* in the **Files** screen). The launcher
 finds `PLAY.BAT` as the entry point and the game starts with one tap.
 
 ![STARFALL on the phone](porting/screenshots/android-n6-starfall-playing.png)
@@ -136,7 +138,7 @@ toolchain/            rootless dev toolchain (no root, no sudo)
 third_party/          SDL2 sources, fetched by third_party/fetch-sdl2.sh
 resources/            the logo and the screenshot
 porting/              the porting log, benchmark notes and screenshots
-examples/             the example game bundle (STARFALL)
+examples/             the example bundle (STARFALL)
 downloads/            the release APK, for people who want to try the app
 bin/                  build.sh (every build scenario), release.sh
 ```

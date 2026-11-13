@@ -14,7 +14,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 /**
- * The game launcher: a panel over the emulator that lists the installed
+ * The bundle launcher: a panel over the emulator that lists the installed
  * bundles and starts them.
  *
  * <p>It is drawn on top of the SDL surface, so it covers the emulator while
@@ -93,7 +93,7 @@ public class GameLauncherView extends FrameLayout {
         panel.addView(header);
 
         TextView title = new TextView(context);
-        title.setText("Games");
+        title.setText("Files");
         title.setTextColor(COLOR_TEXT);
         title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         title.setTypeface(Typeface.DEFAULT_BOLD);
@@ -109,7 +109,7 @@ public class GameLauncherView extends FrameLayout {
         header.addView(close);
 
         // --------------------------------------------------------- install ---
-        Button install = makeButton("+  Install a game bundle (.zip)");
+        Button install = makeButton("+  Install a bundle (.zip)");
         install.setTextColor(0xFF10202E);
         install.setBackgroundColor(COLOR_ACCENT);
         LinearLayout.LayoutParams installParams = new LinearLayout.LayoutParams(
@@ -136,9 +136,9 @@ public class GameLauncherView extends FrameLayout {
         browseParams.gravity = Gravity.CENTER_HORIZONTAL;
         panel.addView(browse, browseParams);
 
-        // ------------------------------------------------------- the games ---
+        // ------------------------------------------------------ the bundles ---
         empty = new TextView(context);
-        empty.setText("No games installed yet.\n\nInstall a .zip bundle from your phone and it is unpacked here, ready to run.");
+        empty.setText("No bundles installed yet.\n\nInstall a .zip bundle from your phone and it is unpacked here, ready to run.");
         empty.setTextColor(COLOR_DIM);
         empty.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
         empty.setGravity(Gravity.CENTER);
@@ -163,9 +163,9 @@ public class GameLauncherView extends FrameLayout {
     }
 
     /**
-     * Rebuilds the list of games.
+     * Rebuilds the list of bundles.
      */
-    public void showGames(java.util.List<GameBundle> bundles) {
+    public void showFiles(java.util.List<GameBundle> bundles) {
         list.removeAllViews();
         empty.setVisibility(bundles.isEmpty() ? VISIBLE : GONE);
         for (final GameBundle bundle : bundles) {

@@ -616,13 +616,13 @@ specific change is fenced by `#if defined(__ANDROID__)`.
 
 ---
 
-## 7b. N6 — the game launcher: game bundles on the phone  ✅ DONE
+## 7b. N6 — the bundle launcher: DOS bundles on the phone  ✅ DONE
 
 ### What was built
 
-A **Games** button in the on-screen keyboard opens a panel that lists the
+A **File** button in the on-screen keyboard opens a panel that lists the
 installed bundles and starts them. A bundle is a `.zip` archive with a DOS
-game in it.
+program in it.
 
 | | |
 |---|---|
@@ -636,7 +636,7 @@ game in it.
 
 | | |
 |---|---|
-| **Install a game bundle (.zip)** | `ACTION_OPEN_DOCUMENT`, with `EXTRA_INITIAL_URI` pointing at the download folder |
+| **Install a bundle (.zip)** | `ACTION_OPEN_DOCUMENT`, with `EXTRA_INITIAL_URI` pointing at the download folder |
 | **Install all bundles from a folder** | `ACTION_OPEN_DOCUMENT_TREE`, every `.zip` below the chosen folder is unpacked |
 | **Open with WhereQ-DOSBox** | an `ACTION_VIEW` intent for `application/zip` |
 

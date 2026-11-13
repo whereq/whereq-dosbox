@@ -1,12 +1,12 @@
 package com.whereq.dosbox;
 
 /**
- * One game bundle that was installed into the app.
+ * One DOS bundle that was installed into the app.
  *
  * <p>A bundle is a zip archive that was unpacked into its own folder under
  * the app's games directory. The folder name is deliberately ASCII and short
  * ({@code G1}, {@code G2}, ...) because the folder is also the DOS path of the
- * game - DOS cannot hold the Chinese name of the archive in a file name.
+ * program - DOS cannot hold the Chinese name of the archive in a file name.
  * The Chinese name is kept here and shown in the launcher.
  */
 public class GameBundle {

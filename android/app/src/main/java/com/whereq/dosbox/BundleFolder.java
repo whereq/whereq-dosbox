@@ -15,12 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Imports the game bundles of a folder on the phone.
+ * Imports the DOS bundles of a folder on the phone.
  *
  * <p>The user picks a folder once with the system folder picker, and the app
  * then unpacks every zip archive it finds in it. That is the quick way to get
- * a whole collection of games onto the phone - one pick instead of one pick
- * per game.
+ * a whole collection of programs onto the phone - one pick instead of one
+ * pick per archive.
  *
  * <p>The access is the one the folder picker hands out: the app sees the
  * chosen folder and nothing else, and no storage permission is needed.

@@ -39,7 +39,7 @@ import java.util.List;
  *   <li>hand DOSBox a private, writable working directory and {@code $HOME};</li>
  *   <li>materialise a DOSBox configuration tuned for a phone;</li>
  *   <li>put the on-screen keyboard on top of the emulator surface;</li>
- *   <li>host the game launcher, which installs and starts game bundles.</li>
+ *   <li>host the bundle launcher, which installs and starts DOS bundles.</li>
  * </ul>
  *
  * <p>Touch input needs no code here: SDL's Android back end already turns
@@ -69,7 +69,7 @@ public class WhereqDosboxActivity extends SDLActivity {
     private static final int REQUEST_PICK_FOLDER = 2;
 
     /**
-     * Opens a game archive for reading.
+     * Opens a bundle archive for reading.
      *
      * <p>The archive comes from the system file picker, from a file manager
      * or from a folder, and each of them reads it in its own way.
@@ -81,10 +81,10 @@ public class WhereqDosboxActivity extends SDLActivity {
     /** The on-screen keyboard, drawn on top of the DOSBox surface. */
     private VirtualKeyboardView keyboard;
 
-    /** The game launcher, drawn on top of everything. */
+    /** The bundle launcher, drawn on top of everything. */
     private GameLauncherView launcher;
 
-    /** The installed games. */
+    /** The installed bundles. */
     private GameLibrary library;
 
     /** Types commands into the running DOSBox. */
@@ -187,8 +187,8 @@ public class WhereqDosboxActivity extends SDLActivity {
      */
     private void installVirtualKeyboard() {
         keyboard = new VirtualKeyboardView(this);
-        keyboard.setOnGamesRequestedListener(new VirtualKeyboardView.OnGamesRequestedListener() {
-            public void onGamesRequested() {
+        keyboard.setOnFilesRequestedListener(new VirtualKeyboardView.OnFilesRequestedListener() {
+            public void onFilesRequested() {
                 showLauncher();
             }
         });
@@ -228,7 +228,7 @@ public class WhereqDosboxActivity extends SDLActivity {
                 public void onEntryPointChosen(GameBundle bundle, String relativePath) {
                     try {
                         library.setEntryPoint(bundle, relativePath);
-                        launcher.showGames(library.list());
+                        launcher.showFiles(library.list());
                     } catch (IOException e) {
                         launcher.setStatus("Could not set the start file: " + e.getMessage());
                     }
@@ -248,7 +248,7 @@ public class WhereqDosboxActivity extends SDLActivity {
                     FrameLayout.LayoutParams.MATCH_PARENT);
             addContentView(launcher, lp);
         }
-        launcher.showGames(library.list());
+        launcher.showFiles(library.list());
         launcher.setStatus("");
         launcher.setVisibility(View.VISIBLE);
     }
@@ -269,7 +269,7 @@ public class WhereqDosboxActivity extends SDLActivity {
                 .setPositiveButton("Remove", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         library.delete(bundle);
-                        launcher.showGames(library.list());
+                        launcher.showFiles(library.list());
                         launcher.setStatus("Removed " + bundle.displayName);
                     }
                 })
@@ -351,7 +351,7 @@ public class WhereqDosboxActivity extends SDLActivity {
      * Shows the zip archives of a folder on the phone.
      *
      * <p>The user picks a folder once and every archive in it is installed -
-     * the quick way to get a whole collection of games onto the phone.
+     * the quick way to get a whole collection of DOS programs onto the phone.
      */
     private void browsePhoneFiles() {
         BundleFolder.pickFolder(this, REQUEST_PICK_FOLDER);
@@ -409,7 +409,7 @@ public class WhereqDosboxActivity extends SDLActivity {
                         if (launcher == null) {
                             return;
                         }
-                        launcher.showGames(library.list());
+                        launcher.showFiles(library.list());
                         if (message != null) {
                             launcher.setStatus(message);
                         } else {
@@ -455,7 +455,7 @@ public class WhereqDosboxActivity extends SDLActivity {
     /**
      * Unpacks a picked archive into the app.
      *
-     * <p>The archive is read on a background thread - a game bundle is a few
+     * <p>The archive is read on a background thread - a bundle is a few
      * megabytes and the emulator must not freeze while it is unpacked.
      *
      * @param source   opens the archive
@@ -486,7 +486,7 @@ public class WhereqDosboxActivity extends SDLActivity {
                         if (launcher == null) {
                             return;
                         }
-                        launcher.showGames(library.list());
+                        launcher.showFiles(library.list());
                         launcher.setStatus(message == null
                                 ? "Installed " + name
                                 : "Could not install " + name + ": " + message);

@@ -73,20 +73,20 @@ public class VirtualKeyboardView extends LinearLayout {
     /**
      * Told when the user taps the launcher button.
      *
-     * <p>The keyboard does not know about the game launcher; it only reports
+     * <p>The keyboard does not know about the bundle launcher; it only reports
      * that the button was pressed.
      */
-    public interface OnGamesRequestedListener {
-        void onGamesRequested();
+    public interface OnFilesRequestedListener {
+        void onFilesRequested();
     }
 
     /** Set by the activity; may be null, then the button does nothing. */
-    private OnGamesRequestedListener launcherListener;
+    private OnFilesRequestedListener launcherListener;
 
     /**
      * Installs the listener that is told about a tap on the launcher button.
      */
-    public void setOnGamesRequestedListener(OnGamesRequestedListener listener) {
+    public void setOnFilesRequestedListener(OnFilesRequestedListener listener) {
         launcherListener = listener;
     }
 
@@ -280,19 +280,20 @@ public class VirtualKeyboardView extends LinearLayout {
         });
         bar.addView(toggleButton);
 
-        // Opens the game launcher. It is not a key, so it gets the accent
+        // Opens the bundle launcher. It is not a key, so it gets the accent
         // colour - it must not look like something that types a character.
-        TextView games = makeButton("Games", "", "w1.6", "k", DP_TOOL_KEY_HEIGHT);
-        games.setTextColor(COLOR_TEXT_ON_ACCENT);
-        games.setBackground(keyBackground(COLOR_KEY_ACCENT));
-        games.setOnClickListener(new OnClickListener() {
+        // "File" and not "Games": a bundle can hold any DOS program.
+        TextView files = makeButton("File", "", "w1.3", "k", DP_TOOL_KEY_HEIGHT);
+        files.setTextColor(COLOR_TEXT_ON_ACCENT);
+        files.setBackground(keyBackground(COLOR_KEY_ACCENT));
+        files.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 if (launcherListener != null) {
-                    launcherListener.onGamesRequested();
+                    launcherListener.onFilesRequested();
                 }
             }
         });
-        bar.addView(games);
+        bar.addView(files);
 
         String[][] tools = {
                 {"Esc", "esc", "w1.1", "k"},

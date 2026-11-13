@@ -5,6 +5,7 @@ without building it.
 
 | file | version | size |
 |---|---|---|
+| [whereq-dosbox-1.0.0.4.apk](whereq-dosbox-1.0.0.4.apk) | 1.0.0.4 | 5.0 MB |
 | [whereq-dosbox-1.0.0.3.apk](whereq-dosbox-1.0.0.3.apk) | 1.0.0.3 | 5.0 MB |
 
 ## Installing it
@@ -17,19 +18,19 @@ without building it.
 The APK is signed with the release key of this repository, so it can be
 updated in place: a later version replaces it without uninstalling first.
 
-* SHA-256 of the file:
-  `e4af359c0bda5d945f781324dc5f8f4743ef40d0c45ae02c66d8e7b2f4aa7702`
+* SHA-256 of the 1.0.0.4 APK:
+  `d2f8a1e6a54f6ea6abd25c4273f19f1cbdd77e311f7427e73c8c9c7d77bada46`
 * Signing certificate (SHA-256):
   `b16b480d5a1ff6d35baff0b15fa3fc4b0ee815e500861fbff1b062c9bf7d3933`
 
 ## What to try first
 
-The app starts in a DOS prompt.  The **Games** button in the on-screen
-keyboard opens the launcher, where a game bundle can be installed — and
+The app starts in a DOS prompt.  The **File** button in the on-screen
+keyboard opens the launcher, where a bundle can be installed — and
 [`examples/game-bundle`](../examples/game-bundle) holds **STARFALL**, a small
 arcade game that shows what a bundle looks like when it runs.  Its bundle
 zip is [`whereq-demo-bundle.zip`](../examples/game-bundle/dist/whereq-demo-bundle.zip);
-install it with *Install a game bundle (.zip)*.
+install it with *Install a bundle (.zip)*.
 
 ## Building it yourself
 
@@ -37,7 +38,7 @@ The APK is built from this repository without Gradle:
 
 ```sh
 WHEREQ_RELEASE_STORE_PASS='<the release key password>' \
-    ./android/build-apk.sh --release --version-name 1.0.0.3 --version-code 1000003
+    ./android/build-apk.sh --release --version-name 1.0.0.4 --version-code 1000004
 ```
 
 See [porting/ANDROID-PORT.md](../porting/ANDROID-PORT.md) for the details.

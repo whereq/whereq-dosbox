@@ -1,8 +1,8 @@
-# The example game bundle
+# The example bundle
 
 This folder holds **STARFALL**, a tiny arcade game that is the example bundle
 for [WhereQ-DOSBox](../../README.md).  It exists so that a new user can see
-what a game bundle is, how one is installed on the phone and what it looks
+what a bundle is, how one is installed on the phone and what it looks
 like when it runs — without having to find a game first.
 
 The game is deliberately small and it is deliberately written in the oldest
@@ -66,8 +66,8 @@ and short, because DOS 8.3 names are what the launcher looks for.
 ## Installing it on the phone
 
 Copy the zip to the phone (anywhere the Files app can see it) and open it
-with WhereQ-DOSBox, or use the **Games** button in the app and pick
-*Install a game bundle (.zip)*.
+with WhereQ-DOSBox, or use the **File** button in the app and pick
+*Install a bundle (.zip)*.
 
 The launcher unpacks the bundle into `C:\GAMES\<name>\` and finds
 `PLAY.BAT` as the entry point, so the game starts with one tap on **Play**.

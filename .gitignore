@@ -67,6 +67,11 @@ Makefile
 /bench/run/
 /bench/rt/
 
+# the object file and the .COM of the example game bundle.
+# The bundle zip in examples/game-bundle/dist/ IS committed, so that the
+# example can be installed on a phone without building anything.
+/examples/game-bundle/build/
+
 # Android build outputs
 /android/.cxx/
 /android/build/

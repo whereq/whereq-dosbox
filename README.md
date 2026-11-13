@@ -64,6 +64,10 @@ in the emulator.
 Games on the phone
 ------------------
 
+> **Want to try the app without building it?** The release APK is in
+> [`downloads/`](downloads/) — see [downloads/README.md](downloads/README.md)
+> for the install steps.
+
 The **Games** button in the on-screen keyboard opens the game launcher. It
 installs a DOS game bundle (a `.zip` archive) on the phone and starts it.
 
@@ -91,6 +95,35 @@ started, so a bundle that is installed afterwards is not in it. A file whose
 name DOS can spell is found all the same — and a program that asks for
 `RESOURCE.CFG` ends up at `RESOURC.CFG`, exactly as it did on a real DOS.
 
+The example bundle
+------------------
+
+There is one bundle in the tree that is meant to be tried first:
+[`examples/game-bundle`](examples/game-bundle). It is **STARFALL**, a tiny
+arcade game in 16-bit DOS assembly — one `.COM` file of about 5 KB, no
+runtime, no libraries — that exercises the three things that matter on a
+phone: graphics (VGA mode 13h, drawn into the video memory), the keyboard
+(the BIOS keyboard buffer) and audio (the PC speaker).
+
+It is there so that a new user can see the whole flow — install a bundle,
+press **Play**, and watch a game run on the phone — without having to find
+a game first.
+
+```sh
+cd examples/game-bundle
+./build.sh                 # -> dist/whereq-demo-bundle.zip
+```
+
+The bundle zip is committed as well, so it can be taken straight from the
+repository. Copy it to the phone and open it with WhereQ-DOSBox (or pick it
+with *Install a game bundle (.zip)* in the **Games** screen). The launcher
+finds `PLAY.BAT` as the entry point and the game starts with one tap.
+
+![STARFALL on the phone](porting/screenshots/android-n6-starfall-playing.png)
+
+The [example README](examples/game-bundle/README.md) has the folder layout,
+the build steps and the notes that anyone reading the source will want.
+
 Layout
 ------
 
@@ -103,6 +136,8 @@ toolchain/            rootless dev toolchain (no root, no sudo)
 third_party/          SDL2 sources, fetched by third_party/fetch-sdl2.sh
 resources/            the logo and the screenshot
 porting/              the porting log, benchmark notes and screenshots
+examples/             the example game bundle (STARFALL)
+downloads/            the release APK, for people who want to try the app
 bin/                  build.sh (every build scenario), release.sh
 ```
 

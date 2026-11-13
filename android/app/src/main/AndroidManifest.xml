@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.whereq.dosbox"
-    android:versionCode="1000002"
-    android:versionName="1.0.0.2"
+    android:versionCode="1000003"
+    android:versionName="1.0.0.3"
     android:installLocation="auto">
 
     <!-- SDL2's video back end needs OpenGL ES 2.0 -->

@@ -713,6 +713,13 @@ installed from their archives and started with **Play**:
 * `porting/screenshots/android-n6-ultima8-running.png` — Ultima VIII
 * `porting/screenshots/android-n6-toolbar.png` — the keyboard, see below
 
+The example bundle of section 7c was installed the same way:
+
+* `porting/screenshots/android-n6-starfall-title.png` — the title screen
+* `porting/screenshots/android-n6-starfall-playing.png` — the game
+* `porting/screenshots/android-n6-starfall-gameover.png` — the game over
+  screen
+
 ### The keyboard was too wide
 
 The toolbar of the on-screen keyboard had 21 keys of a fixed width, which
@@ -720,6 +727,131 @@ is more than the width of the screen in landscape. The last key was cut off
 and could not be clicked. The toolbar now weighs its keys, so the strip
 always fills the width exactly, and the function keys moved into the panel
 where they already were.
+
+---
+
+## 7c. The example bundle — STARFALL  ✅ DONE
+
+A bundle has to exist before anyone can try the launcher, and it has to be
+one the project may ship. `examples/game-bundle` holds **STARFALL**: a tiny
+arcade game in 16-bit DOS assembly, one `.COM` of about 5 KB, no runtime and
+no libraries. It exercises the three things that matter on a phone —
+graphics (VGA mode 13h, drawn into the video memory), the keyboard (the
+BIOS key buffer) and audio (the PC speaker).
+
+### Why a game, and why in assembly
+
+The point of the example is to show what a bundle is and how it runs, so it
+has to be small enough to read and to build from the repository toolchain
+alone. A DOS C toolchain does not exist in the tree, so the game is written
+in GNU `as` assembly:
+
+```
+as --32 -I src -o build/starfall.o src/starfall.asm
+ld -m elf_i386 --oformat binary -Ttext 0x100 -e _start -o build/STARFALL.COM build/starfall.o
+```
+
+The image is linked at `100h`, because that is where DOS loads a `.COM` and
+enters it — so every label in the source is also its offset inside the
+loaded segment, and no relocation is needed.
+
+The text is drawn with an 8x8 bitmap font that is *generated* from
+Liberation Mono by `tools/mkfont.py`, so the font is not hand-drawn and can
+be regenerated. The script also writes a proof sheet (`src/font8x8.png`).
+
+### DOSBox counts `INT 15h/86h` in milliseconds
+
+The frame delay is `INT 15h/86h`. On a real BIOS the count in `CX:DX` is a
+number of microseconds, and the usual code multiplies the milliseconds by
+1000. DOSBox does not: it puts the count in `CX:DX` and its `INT 70h`
+handler takes **997** off it on every RTC interrupt
+(`src/ints/bios.cpp`), and the RTC interrupt comes about 600 times a
+second, not 1000. So a count of 1000 is roughly 1.6 milliseconds.
+
+That is only worth knowing because a wrong guess is invisible in the
+screenshot: the game still runs, it just takes a minute to get to the title
+screen. The delays in the game are tuned for what DOSBox actually does.
+
+### The screen is only redrawn where it changed
+
+DOSBox renders the changed lines of the VGA memory and presents only those
+rects. A game that repaints the whole screen every frame is slow on a
+phone; the game therefore paints the sky, the score bar and the ground once
+and after that only moves the sprites around. The colour of the sky is a
+function of the row alone, so erasing a sprite is a fill of the right
+colour.
+
+### DOSBox draws the mouse pointer into the screen
+
+DOSBox draws the mouse pointer into the emulated screen itself
+(`DrawCursor()` in `src/ints/mouse.cpp`), and the pointer sits wherever the
+touch last was — in the corner of the picture, scribbling over it. A game
+that does not use the mouse should hide it, and the BIOS mouse driver can:
+`INT 33h`, `AX=0200h` sets `mouse.hidden`, and DOSBox then leaves the
+picture alone.
+
+### The bundle layout
+
+```
+PLAY.BAT      the start-up script the launcher looks for
+STARFALL.COM  the game
+README.TXT    what the bundle is
+```
+
+Upper case and short, because DOS 8.3 names are what the launcher looks
+for, and because a file whose name DOS can spell is found without a
+directory listing (see 7b).
+
+### Verified on the emulator
+
+The bundle was installed with the *Open with WhereQ-DOSBox* intent and
+started with **Play**. The title screen, the game and the game over screen
+were all checked on the emulator (API 37, x86_64): the dithered sky, the
+score bar, the ship, the shots, the aliens and the explosion all show up,
+the arrow keys move the ship and the space bar fires.
+
+Two bugs in the game itself were found this way and are worth writing down,
+because they are easy to make in 16-bit assembly and they do not crash:
+
+* **A `loop` counter in `CX` must be saved before `CL` is used.** The
+  colour of a star was loaded into `CL` *before* `push cx`, so the push
+  saved the clobbered value and the loop ran 65533 times instead of 80,
+  spraying garbage over the whole screen.
+* **A word read of a byte variable also reads the byte after it.** The
+  score bar showed `SHIPS 00051` because `mov al, [lives]` left the high
+  byte of `AX` as it was, and `AX` was stored as the number.
+
+### The crash that only the phone showed
+
+Later the game died in the middle of a round on the phone, and the screen
+showed the DOS prompt printed *over* the game picture — the text mode was
+never restored, so the program died instead of leaving normally.
+
+The picture is the clue: the game had already repainted the sky, the stars
+and the score bar (that is what `start_game` does), and then it died. So it
+died in the round that was started from the game over screen.
+
+Two bugs were behind it, both of them the same mistake:
+
+* **A nested loop that uses `CX` destroys the counter of the outer loop.**
+  `check_hits` walks the aliens inside the loop over the shots, and it used
+  `CX` for the column of the alien; `update_booms` used `CX` for the row of
+  the explosion. The outer `loop` then counted with that value instead of
+  with 4, ran hundreds of times, and wrote zeroes over the memory behind
+  the arrays — the game's own variables included.
+* **The game over screen has to jump back into the game loop.** `start_game`
+  was called with `je start_game`, so after it returned the code fell
+  through to `jmp game_over_wait` and the game sat on the game over screen
+  waiting for a key, instead of playing on.
+
+The fix for the first one is the same as for the `CL` case: save `CX`
+around the nested loop. The fix for the second one is one more jump:
+`call start_game` and then `jmp game_loop`.
+
+Both were found on the phone and not on the host, because the emulator runs
+DOSBox much faster than a desktop: the aliens reach the ship in a couple of
+seconds, so the game over screen — and with it the crash — is reached in a
+couple of seconds as well.
 
 ---
 

@@ -47,6 +47,9 @@ class GameLauncherView(context: Context, private val listener: Listener) : Frame
         /** Stop whatever is running and return to a clean DOS prompt. */
         fun onExitToPromptRequested()
 
+        /** Open the settings dialog (the DOSBox CPU core). */
+        fun onConfigRequested()
+
         /** Close the panel. */
         fun onCloseRequested()
     }
@@ -93,6 +96,14 @@ class GameLauncherView(context: Context, private val listener: Listener) : Frame
             title,
             LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         )
+
+        // The settings: which CPU core DOSBox should use. The shipped default
+        // (auto) is right for almost everything, but a few old DOS programs
+        // misbehave on the recompiler, so the fallback has to be reachable
+        // without a text editor.
+        val config = makeButton("⚙ Config")
+        config.setOnClickListener { listener.onConfigRequested() }
+        header.addView(config)
 
         // Escape hatch: stop a game that hung or went black and return to a
         // clean C:\> prompt. Always reachable, because this launcher is an

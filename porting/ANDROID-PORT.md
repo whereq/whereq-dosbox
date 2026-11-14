@@ -233,8 +233,15 @@ Enabled: `C_SDLGFX`, `C_FPU`, `C_CORE_INLINE`, `C_UNALIGNED_MEMORY`.
 
 Disabled on purpose: `C_OPENGL` (desktop fixed-function GL cannot run on
 GLES2 — we use the SDL_Renderer path), `C_DEBUG` / `C_CURSOUT` (curses),
-`C_DYNREC` / `C_DYNAMIC_X86` (no JIT), `C_DIRECTSERIAL` / `LINUX` (host serial
+`C_DYNAMIC_X86` (x86 only), `C_DIRECTSERIAL` / `LINUX` (host serial
 code), `HAVE_PWD_H` (bionic's `getpwnam` is a stub).
+
+`C_DYNREC` was disabled here too — the recompiling core needs a GCC plugin
+that the NDK clang cannot build, and Android 10+ forbids executing writable
+memory. Both problems turned out to be solvable: the portable code
+generators emit machine code into a cache buffer at run time (no plugin
+involved), and the cache is made executable with an anonymous `PROT_EXEC`
+mmap. `C_DYNREC` is enabled since release 1.0.0.5 — see section 7d.
 
 ### Toolchain findings (the four real blockers)
 
@@ -728,6 +735,22 @@ and could not be clicked. The toolbar now weighs its keys, so the strip
 always fills the width exactly, and the function keys moved into the panel
 where they already were.
 
+### The keyboard became two columns
+
+The strip along the bottom still ate a third of the screen in landscape. The
+DOS picture is 4:3 and letterboxed, so in landscape there are black bars down
+the left and right — and the always-on control keys now live in those bars as
+two vertical columns. The modifiers and the editing keys (Esc, Tab, Ctrl,
+Alt, Shift, Bks) sit on the left, **File**, **Ent**, **Space** and the arrow
+keys on the right, both columns centred vertically for thumb reach.
+
+The columns are only used when a bar is at least 56 dp wide; in portrait the
+same keys fall back to a slim strip along the bottom. The overlay is
+transparent and not clickable, so a tap on the empty middle still falls
+through to the SDL surface as a DOS mouse click.
+
+Screenshot: `porting/screenshots/android-n6-keyboard-layout.png`.
+
 ---
 
 ## 7c. The example bundle — STARFALL  ✅ DONE
@@ -852,6 +875,44 @@ Both were found on the phone and not on the host, because the emulator runs
 DOSBox much faster than a desktop: the aliens reach the ship in a couple of
 seconds, so the game over screen — and with it the crash — is reached in a
 couple of seconds as well.
+
+---
+
+## 7d. The CPU core in the app  ✅ DONE
+
+The app ships with `core=auto`: a real-mode program runs on the interpreter, a
+protected-mode program on the recompiler. The documentation also promises a
+fallback — `core=normal` for the handful of old DOS programs that misbehave
+on the recompiler.
+
+### The fallback was not reachable
+
+`dosbox.conf` is **regenerated from the asset on every boot**, so that a
+shipped change (like `core=auto` itself) reaches installs that are already on
+the phone. The price is that a hand-edited `dosbox.conf` is overwritten at the
+next start: the documented fallback could not be used without a file manager
+and a text editor, and the config file is not even visible from outside the
+app's private directory.
+
+### The setting
+
+The **Config** button in the Files panel opens a dialog with the five cores
+DOSBox knows:
+
+| core | meaning |
+|---|---|
+| `auto` | the interpreter for real mode, the recompiler for protected mode (the default) |
+| `normal` | the interpreter only |
+| `dynamic` | the recompiler only |
+| `simple` | a small, fast interpreter |
+| `prefetch` | the interpreter with a prefetch unit |
+
+The choice is stored in the app's preferences and written into the generated
+config, so it survives a restart and a reinstall of the app. DOSBox picks its
+core when it starts, so the app asks whether to restart now.
+
+The generated config is the shipped template with the `core=` line replaced
+(`(?m)^core=.*$`); the comment block above it keeps explaining the setting.
 
 ---
 
@@ -981,8 +1042,12 @@ AGP 8.1.4 warns that it was tested up to `compileSdk 34` only; the warning is
 suppressed through `android.suppressUnsupportedCompileSdk=36` in
 `gradle.properties`. The app itself uses nothing newer than API 21.
 
-`android/build-apk.sh` remains the canonical build — it needs no Gradle
-installation and no dependency download.
+At the time of that verification `android/build-apk.sh` was still the canonical
+build. That changed with the Kotlin migration (release 1.0.0.5): the app layer
+is Kotlin with AndroidX, so the script — which compiles Java with `javac` —
+can no longer build it. **Gradle is the canonical build now**
+(`bin/build.sh apk` drives it), and `build-apk.sh` survives as a legacy,
+Java-only helper (`bin/build.sh apk --legacy-apk`).
 
 ### Still open for a real release
 
@@ -999,10 +1064,10 @@ installation and no dependency download.
 
 ## 9. Open items
 
-1. **Java app polish** — back button, lifecycle handling
-   (`onPause`/`onResume` must not corrupt emulator state). The Gradle project
-   (`android/app/build.gradle`) exists and is verified equivalent to the
-   no-Gradle build (see section 8), but it is still not the canonical path.
+1. **App polish** — the app layer is Kotlin with AndroidX and the Gradle
+   build is the canonical one (see section 8). Still worth doing: back button
+   behaviour outside the launcher, lifecycle handling (`onPause`/`onResume`
+   must not corrupt emulator state).
 2. **Storage** — `chdir` to the app-private files dir is done. Game
    bundles are imported with the system file and folder pickers and with
    the "open with" intent (see section 7b) — no storage permission, since

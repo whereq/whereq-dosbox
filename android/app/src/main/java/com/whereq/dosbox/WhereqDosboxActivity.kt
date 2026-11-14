@@ -247,6 +247,8 @@ class WhereqDosboxActivity : SDLActivity() {
 
                 override fun onExitToPromptRequested() = exitToPrompt()
 
+                override fun onConfigRequested() = showConfigDialog()
+
                 override fun onCloseRequested() = closeLauncher()
             })
 
@@ -589,6 +591,8 @@ class WhereqDosboxActivity : SDLActivity() {
      *
      * The config is regenerated from the asset template every boot (so shipped
      * changes — e.g. core=auto — always take effect, and the file cannot drift).
+     * The one exception is the CPU core the user picked in the settings, which
+     * is written into the template; a hand-edited dosbox.conf would be lost.
      * The template's `[autoexec]` ends with `mount c .` + `c:`; when a game is
      * pending, its `RUN.BAT` is appended so DOSBox boots straight into it.
      *
@@ -599,8 +603,15 @@ class WhereqDosboxActivity : SDLActivity() {
         val target = File(filesDir, CONF_NAME)
         try {
             val base = assets.open(CONF_ASSET).use { it.readBytes() }
+            // The config is regenerated on every boot, so a hand-edited
+            // dosbox.conf would be lost — the CPU core the user picked in the
+            // settings is written into it instead (see showConfigDialog).
+            val core = getSharedPreferences(LAUNCH_PREFS, MODE_PRIVATE)
+                .getString(KEY_CPU_CORE, null)
+            val config = String(base, Charsets.ISO_8859_1)
+            val text = if (core != null) applyCpuCore(config, core) else config
             FileOutputStream(target).use { out ->
-                out.write(base)
+                out.write(text.toByteArray(Charsets.ISO_8859_1))
                 if (pendingLaunch != null) {
                     // DOS line endings; ISO-8859-1 matches how RUN.BAT is written.
                     val autostart = "\r\nC:\\" + GameBundle.DOS_GAMES_DIR + "\\" +
@@ -611,11 +622,64 @@ class WhereqDosboxActivity : SDLActivity() {
             Log.i(
                 TAG,
                 "wrote " + target.absolutePath +
-                    (if (pendingLaunch != null) " (autostart $pendingLaunch)" else "")
+                    (if (pendingLaunch != null) " (autostart $pendingLaunch)" else "") +
+                    (if (core != null) " (core $core)" else "")
             )
         } catch (e: IOException) {
             Log.e(TAG, "could not write $CONF_NAME", e)
         }
+    }
+
+    /**
+     * Replaces the `core=` line of the shipped configuration with [core].
+     *
+     * Only a line that starts with `core=` is touched, so the comment block
+     * above it keeps explaining the setting.
+     */
+    private fun applyCpuCore(config: String, core: String): String =
+        config.replace(Regex("(?m)^core=.*$"), "core=" + core)
+
+    /**
+     * Lets the user pick the DOSBox CPU core.
+     *
+     * The app ships with `core=auto`: a real-mode program runs on the
+     * interpreter, a protected-mode program on the recompiler. A few old DOS
+     * programs misbehave on the recompiler, and the documented fallback
+     * (`core=normal`) has to be reachable without a text editor — the config
+     * file is regenerated on every boot, so a manual edit would be lost.
+     *
+     * The choice is stored and applied to the next boot; DOSBox cannot switch
+     * its core while it runs.
+     */
+    private fun showConfigDialog() {
+        val current = getSharedPreferences(LAUNCH_PREFS, MODE_PRIVATE)
+            .getString(KEY_CPU_CORE, DEFAULT_CPU_CORE) ?: DEFAULT_CPU_CORE
+        val checked = CPU_CORES.indexOf(current).coerceAtLeast(0)
+        AlertDialog.Builder(this)
+            .setTitle("CPU core")
+            .setSingleChoiceItems(CPU_CORE_LABELS, checked) { dialog, which ->
+                dialog.dismiss()
+                val core = CPU_CORES[which]
+                getSharedPreferences(LAUNCH_PREFS, MODE_PRIVATE).edit()
+                    .putString(KEY_CPU_CORE, core)
+                    .commit()
+                confirmRestartForCore(core)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    /** Asks whether to restart now, so the new core takes effect. */
+    private fun confirmRestartForCore(core: String) {
+        AlertDialog.Builder(this)
+            .setTitle("CPU core: " + core)
+            .setMessage(
+                "DOSBox picks its core when it starts, so the new setting " +
+                    "takes effect after a restart."
+            )
+            .setPositiveButton("Restart") { _, _ -> relaunch(null) }
+            .setNegativeButton("Later", null)
+            .show()
     }
 
     companion object {
@@ -629,6 +693,24 @@ class WhereqDosboxActivity : SDLActivity() {
 
         /** The games folder (e.g. "G1") to auto-run on the next boot, or absent. */
         private const val KEY_PENDING_LAUNCH = "pending"
+
+        /** The CPU core the user picked in the settings, or absent for the default. */
+        private const val KEY_CPU_CORE = "cpu_core"
+
+        /** The CPU cores DOSBox understands, in the order they are offered. */
+        private val CPU_CORES = arrayOf("auto", "normal", "dynamic", "simple", "prefetch")
+
+        /** What the user sees for each core. */
+        private val CPU_CORE_LABELS = arrayOf(
+            "Auto — interpreter for real mode, JIT for protected mode",
+            "Normal — the interpreter only",
+            "Dynamic — the JIT only",
+            "Simple — a small, fast interpreter",
+            "Prefetch — the interpreter with a prefetch unit"
+        )
+
+        /** The core the app ships with: the one the documentation describes. */
+        private const val DEFAULT_CPU_CORE = "auto"
 
         /** DOSBox configuration file, written into the app's files directory. */
         private const val CONF_NAME = "dosbox.conf"

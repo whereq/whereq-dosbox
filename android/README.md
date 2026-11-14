@@ -427,7 +427,7 @@ The shipped config uses **`core=auto`** (`android/app/src/main/assets/dosbox.con
   allocated at that moment.
 * If the cache cannot be allocated, DOSBox exits with
   `E_Exit("Allocating dynamic cache failed")`. Set `core=normal` in
-  `dosbox.conf` as the fallback.
+  `dosbox.conf` as the fallback — or pick it in the app, see below.
 
 The interpreter cores (`core=normal`, `core=simple`, `core=prefetch`) stay
 available. Measured on the desktop baseline (x86_64, Intel Core Ultra 7 155H):
@@ -441,6 +441,16 @@ available. Measured on the desktop baseline (x86_64, Intel Core Ultra 7 155H):
 (`CPU_CycleMax = 3000` cycles/ms, `src/cpu/cpu.cpp:53`). Even a large
 downscale for ARM64 leaves ample headroom. **On-device numbers still need to
 be measured on real hardware.**
+
+### The core is a setting in the app
+
+`dosbox.conf` is regenerated from the asset on every boot, so that a shipped
+change reaches installs that are already on the phone — which also means a
+hand-edited config would be lost. The **Config** button in the Files panel
+therefore offers the cores (`auto`, `normal`, `dynamic`, `simple`,
+`prefetch`); the choice is stored in the preferences and written into the
+generated config. See `WhereqDosboxActivity.showConfigDialog()` and
+`applyCpuCore()`.
 
 ## Remaining work
 

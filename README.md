@@ -17,8 +17,8 @@
 </p>
 
 <p align="center">
-  <sub>The DOSBox welcome screen, a mounted drive and the on-screen keyboard —
-  touch moves the DOS mouse, the keys type into DOSBox.</sub>
+  <sub>The DOSBox welcome screen, a mounted drive and the two-sided on-screen
+  keyboard — touch moves the DOS mouse, the keys type into DOSBox.</sub>
 </p>
 
 ---
@@ -68,6 +68,19 @@ JIT code cache cannot be allocated.
 | Version scheme | `v{major}.{minor}.{patch}.{build}` — see `bin/release.sh` |
 | APK size | ~15.5 MB with all three ABIs (the native libraries are stored uncompressed, so they can be mapped straight from the APK) |
 
+The on-screen keyboard
+-----------------------
+
+The DOS picture is 4:3 and letterboxed, so in landscape there are black bars
+down the left and right. The always-on control keys live in those bars as two
+vertical columns — the modifiers and the editing keys on the left, **File**,
+**Ent**, **Space** and the arrows on the right — so the picture keeps the whole
+middle of the screen and the keys sit under the thumbs. In portrait the bars
+are too narrow for that, and the same keys fall back to a slim strip along the
+bottom.
+
+![The two-sided on-screen keyboard](porting/screenshots/android-n6-keyboard-layout.png)
+
 Files on the phone
 ------------------
 
@@ -79,6 +92,20 @@ The **File** button in the on-screen keyboard opens the bundle launcher. It
 installs a DOS bundle (a `.zip` archive) on the phone and starts it. The
 button says *File* and not *Games*, because a bundle can hold any DOS
 program — a game, a utility, a text mode application.
+
+The **Config** button next to it opens the settings. There is one setting
+today: the **CPU core** DOSBox should use.
+
+| core | |
+|---|---|
+| `auto` | the default — the interpreter for real-mode programs, the recompiler (JIT) for protected-mode ones |
+| `normal` | the interpreter only |
+| `dynamic` | the recompiler only |
+| `simple`, `prefetch` | the other two interpreter cores |
+
+`auto` is right for almost everything, but a few old DOS programs misbehave
+on the recompiler, and `normal` is the fallback for them. DOSBox picks its
+core when it starts, so the app asks whether to restart now.
 
 There are three ways to get a bundle onto the phone:
 

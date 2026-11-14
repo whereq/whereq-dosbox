@@ -49,32 +49,48 @@ ACT="$PKG/.WhereqDosboxActivity"
 # strip the quotes, so adb would receive them literally ("unknown command
 # \"devices\""). None of our paths contain spaces, and cmd.exe rejoins the
 # argument vector with spaces, so `shell "getprop x"` still works.
+#
+# The WSL interop is flaky: spawning a Windows process fails every now and then
+# with "UtilAcceptVsock: accept4 failed 110", which is not an adb error and
+# says nothing about the device. So a failed call is retried a few times before
+# it is reported - without that, one hiccup kills the script.
+WADB_RETRIES="${WADB_RETRIES:-5}"
 wadb() {
   # Run cmd.exe from a Windows directory: a WSL cwd is a UNC path and cmd.exe
   # then prints a multi-line warning that would end up in the parsed output.
   # stderr is deliberately left out of the pipe so that only adb's stdout is
   # parsed.
-  ( cd "$WIN_HOME" && \
-    cmd.exe /c "cd /d C:\\ && C:\\Users\\googo\\AppData\\Local\\Android\\Sdk\\platform-tools\\adb.exe $*" ) \
-    | tr -d '\r'
+  local attempt out=""
+  for attempt in $(seq 1 "$WADB_RETRIES"); do
+    out="$( ( cd "$WIN_HOME" && \
+      cmd.exe /c "cd /d C:\\ && C:\\Users\\googo\\AppData\\Local\\Android\\Sdk\\platform-tools\\adb.exe $*" ) \
+      | tr -d '\r' )" && { printf '%s' "$out"; return 0; }
+    [ "$attempt" -lt "$WADB_RETRIES" ] && sleep 3
+  done
+  printf '%s' "$out"
+  return 1
 }
 
 emu_state() {
-  wadb devices | grep -E "^emulator-5554" | awk '{print $2}'
+  wadb devices 2>/dev/null | grep -E "^emulator-5554" | awk '{print $2}' || true
 }
 
 do_boot() {
   if [ -z "$(emu_state)" ]; then
     echo "== starting emulator (AVD: $AVD) =="
+    # -gpu host uses the real GPU through the emulator's OpenGL ES translator.
+    # The SwiftShader renderer (swiftshader_indirect) draws the screen in
+    # scattered tiles, which looks like an app bug but is not one - the same
+    # APK is clean on the host GPU.
     ( cd "$WIN_SDK/emulator" && \
       setsid nohup ./emulator.exe -avd "$AVD" -no-window -no-audio -no-boot-anim \
-        -no-snapshot -gpu swiftshader_indirect -port 5554 > /tmp/emu.log 2>&1 < /dev/null & )
+        -no-snapshot -gpu host -port 5554 > /tmp/emu.log 2>&1 < /dev/null & )
     sleep 10
   fi
 
   # The adb server must be running *before* the emulator registers, otherwise
   # the device shows up as "unauthorized" and never recovers.
-  wadb start-server >/dev/null
+  wadb start-server >/dev/null || true
   echo "== waiting for device =="
   for i in $(seq 1 60); do
     state="$(emu_state)"
@@ -88,7 +104,7 @@ do_boot() {
 
   echo "== waiting for boot_completed =="
   for i in $(seq 1 30); do
-    b="$(wadb shell getprop sys.boot_completed | tr -d ' \r\n')"
+    b="$(wadb shell getprop sys.boot_completed 2>/dev/null | tr -d ' \r\n' || true)"
     [ "$b" = "1" ] && { echo "boot completed"; return 0; }
     sleep 10
   done

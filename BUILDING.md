@@ -414,7 +414,7 @@ python3 -m pip install --user pillow
 ## Scenario 9 — version bump and release
 
 The version lives in the git tag. `bin/release.sh` bumps it, mirrors it into
-the `VERSION` file, commits, tags and pushes:
+the `VERSION` file and the Android manifest, commits, tags and pushes:
 
 ```sh
 bin/release.sh --dry-run -m "Fix the Android audio latency"
@@ -423,30 +423,58 @@ bin/release.sh --dry-run -m "Fix the Android audio latency"
 Preview first — the dry run writes nothing:
 
 ```
-━━━ Step 1: Check the working tree
 ━━━ Step 2: Write VERSION
-  [dry-run] would write VERSION = 1.0.0.2
-━━━ Step 4: Tag
-  [dry-run] git tag -a v1.0.0.2 -m "Fix the Android audio latency"
-═══ Release v1.0.0.2 ═══
-  version      : 1.0.0.2
-  versionCode  : 1000002
-  build it with:
-    ./android/build-apk.sh --version-name 1.0.0.2 --version-code 1000002
+  [dry-run] would write VERSION = 1.0.0.7
+━━━ Step 3: Write the manifest
+  [dry-run] would set versionCode=1000007 versionName=1.0.0.7 in android/app/src/main/AndroidManifest.xml
+━━━ Step 4: Commit
+  [dry-run] git add -- VERSION android/app/src/main/AndroidManifest.xml
+  [dry-run] git commit -m Fix the Android audio latency
+═══ Release v1.0.0.7 ═══
+  version      : 1.0.0.7
+  tag          : v1.0.0.7
+  versionCode  : 1000007
 ```
 
-Then do it for real, and build the matching APK:
+The script stages **only** the `VERSION` file and the manifest, and commits
+whatever else is already staged. Stage the rest of the release yourself first:
 
 ```sh
+git add <path> <path>          # the APK, the sources, the docs
 bin/release.sh -m "Fix the Android audio latency"
-
-export WHEREQ_RELEASE_STORE_PASS='<keystore password>'
-bin/build.sh apk --release --version-name 1.0.0.2 --version-code 1000002
 ```
+
+Nothing else is staged for you — an unrelated file that happens to sit in the
+working tree cannot end up in a release commit.
 
 Tags are `v{major}.{minor}.{patch}.{build}` — four numeric segments. The
 `android:versionCode` is the same four segments packed into a monotonically
 increasing integer (`1.0.0.2` → `1000002`).
+
+The APK is built from the `VERSION` file, so it has to be built **after** the
+bump. The release order is therefore:
+
+```sh
+git add <the release's files>
+bin/release.sh --skip-commit --skip-push -m "..."   # bump VERSION + manifest
+bin/build.sh apk --release                         # the APK, now 1.0.0.7
+cp android/app/build/outputs/apk/release/app-release.apk downloads/whereq-dosbox-1.0.0.7.apk
+git add downloads/whereq-dosbox-1.0.0.7.apk
+git commit -m "..."
+git tag -a v1.0.0.7 -m "..."
+git push origin HEAD:refs/heads main
+git push origin refs/tags/v1.0.0.7
+```
+
+The release build needs the release key; without it the APK falls back to the
+debug key and cannot be installed over a release-signed app:
+
+```sh
+export WHEREQ_RELEASE_KEYSTORE="$PWD/build/release.keystore"
+export WHEREQ_RELEASE_STORE_PASS='<keystore password>'
+export WHEREQ_RELEASE_ALIAS=whereq
+bin/build.sh apk --release
+```
 
 ---
 

@@ -38,7 +38,14 @@
 #
 #   The tag is the single source of truth for the version: it is mirrored into
 #   the VERSION file at the repo root, and the Android build reads that file
-#   for android:versionName / android:versionCode.
+#   for android:versionName / android:versionCode. The manifest is updated
+#   too, because the legacy no-Gradle build reads the version from there.
+#
+# STAGING
+#   The script stages the VERSION file and the manifest, and commits whatever
+#   else is already staged. Stage the rest of the release yourself first
+#   (`git add <path>`); the script never stages the whole tree, so an
+#   unrelated file in the working tree cannot end up in a release commit.
 #
 # TYPICAL FLOW
 #   bin/release.sh -m "Fix the rootless toolchain bootstrap"
@@ -113,6 +120,7 @@ DRY_RUN=false
 RELEASE_BRANCH="${RELEASE_BRANCH:-main}"
 RELEASE_REMOTE="${RELEASE_REMOTE:-origin}"
 VERSION_FILE="VERSION"
+MANIFEST_FILE="android/app/src/main/AndroidManifest.xml"
 
 # The house tag scheme: strictly four numeric segments.
 TAG_RE='^v[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'
@@ -270,11 +278,6 @@ fi
 # -----------------------------------------------------------------------------
 step "Write VERSION"
 
-if [[ "$SKIP_COMMIT" == true && "$SKIP_TAG" == true ]]; then
-    dim "nothing to do (--skip-commit --skip-tag)"
-    exit 0
-fi
-
 if [[ "$DRY_RUN" == true ]]; then
     dim "[dry-run] would write $VERSION_FILE = $VERSION"
 else
@@ -283,11 +286,33 @@ else
 fi
 
 # -----------------------------------------------------------------------------
+# Android manifest
+# -----------------------------------------------------------------------------
+# The Gradle build takes the version from the VERSION file, but the manifest
+# carries the same two values for the legacy no-Gradle build (build-apk.sh).
+# Both are updated here so the two paths can never disagree.
+step "Write the manifest"
+
+if [[ "$DRY_RUN" == true ]]; then
+    dim "[dry-run] would set versionCode=$VC versionName=$VERSION in $MANIFEST_FILE"
+else
+    sed -i \
+        -e "s/android:versionCode=\"[0-9][0-9]*\"/android:versionCode=\"$VC\"/" \
+        -e "s/android:versionName=\"[^\"]*\"/android:versionName=\"$VERSION\"/" \
+        "$MANIFEST_FILE"
+    ok "$MANIFEST_FILE = versionCode $VC, versionName $VERSION"
+fi
+
+# -----------------------------------------------------------------------------
 # Commit
 # -----------------------------------------------------------------------------
 if [[ "$SKIP_COMMIT" == false ]]; then
     step "Commit"
-    run git add -A
+    # Only the files the release owns are staged here. Everything else the
+    # release contains has to be staged by the caller (`git add <path>`), so
+    # an unrelated file that happens to sit in the working tree cannot slip
+    # into a release commit.
+    run git add -- "$VERSION_FILE" "$MANIFEST_FILE"
     if [[ "$DRY_RUN" == true ]]; then
         run git commit -m "$COMMIT_MSG"
         ok "committed"
@@ -299,6 +324,16 @@ if [[ "$SKIP_COMMIT" == false ]]; then
     fi
 else
     dim "skipping the commit"
+fi
+
+if [[ "$SKIP_COMMIT" == true && "$SKIP_TAG" == true ]]; then
+    # --skip-commit --skip-tag: the version files are written and nothing
+    # else happens. That is the way to bump the version for a build whose
+    # APK is published afterwards.
+    echo ""
+    echo -e "${BOLD}Version files written to ${VERSION} / ${VC}${NC}"
+    echo "  (no commit, no tag - build the APK, then commit and tag by hand)"
+    exit 0
 fi
 
 # -----------------------------------------------------------------------------
@@ -342,5 +377,7 @@ echo -e "  tag          : ${TAG}"
 echo -e "  versionCode  : ${VC}"
 echo -e "  branch       : ${RELEASE_BRANCH}"
 echo -e "  build it with:"
-echo -e "    ./android/build-apk.sh --version-name ${VERSION} --version-code ${VC}"
+echo -e "    bin/build.sh apk --release"
+echo -e "  (the version comes from the VERSION file; --version-name /"
+echo -e "   --version-code are only needed to override it)"
 echo ""

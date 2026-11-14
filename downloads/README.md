@@ -5,10 +5,22 @@ without building it.
 
 | file | version | size |
 |---|---|---|
+| [whereq-dosbox-1.0.0.7.apk](whereq-dosbox-1.0.0.7.apk) | 1.0.0.7 | 15.5 MB |
 | [whereq-dosbox-1.0.0.6.apk](whereq-dosbox-1.0.0.6.apk) | 1.0.0.6 | 15.5 MB |
 | [whereq-dosbox-1.0.0.5.apk](whereq-dosbox-1.0.0.5.apk) | 1.0.0.5 | 15.5 MB |
 | [whereq-dosbox-1.0.0.4.apk](whereq-dosbox-1.0.0.4.apk) | 1.0.0.4 | 5.0 MB |
 | [whereq-dosbox-1.0.0.3.apk](whereq-dosbox-1.0.0.3.apk) | 1.0.0.3 | 5.0 MB |
+
+## What changed in 1.0.0.7
+
+* **The CPU core can be changed in the app.** The **Config** button in the
+  Files panel offers the five cores DOSBox knows: `auto` (the default),
+  `normal`, `dynamic`, `simple` and `prefetch`. In 1.0.0.6 the fallback to
+  `core=normal` was only documented — the configuration file is regenerated
+  on every boot, so it could not be edited on the phone.
+* The keyboard of the current release is two columns in the letterbox bars
+  (the modifiers on the left, **File**, **Ent**, **Space** and the arrows on
+  the right). The README shows it.
 
 ## What changed in 1.0.0.6
 
@@ -18,8 +30,8 @@ hands over to the recompiling (JIT) core, which is compiled into the native
 library for all three ABIs. Both paths were verified on the emulator —
 STARFALL in real mode, Ultima VIII in protected mode.
 
-If the JIT code cache cannot be allocated, put `core=normal` in
-`dosbox.conf` as the fallback.
+If the JIT code cache cannot be allocated, `core=normal` is the fallback —
+from 1.0.0.7 on it can be picked in the app, see above.
 
 ## Installing it
 
@@ -31,6 +43,8 @@ If the JIT code cache cannot be allocated, put `core=normal` in
 The APK is signed with the release key of this repository, so it can be
 updated in place: a later version replaces it without uninstalling first.
 
+* SHA-256 of the 1.0.0.7 APK:
+  `2e97f12f3901acbdc23f62395316df25aa51f4a081d941a950b2d7dfa36910a1`
 * SHA-256 of the 1.0.0.6 APK:
   `a41d76eeb2c79eccf5afb4f77dcff8d7525d8c9c55c2fad982707520feed369a`
 * SHA-256 of the 1.0.0.5 APK:

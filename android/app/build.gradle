@@ -1,53 +1,47 @@
-// whereq-dosbox - Android application module (Gradle / Android Studio).
+// whereq-dosbox — Android application module (Kotlin + AndroidX).
 //
-// The canonical build in this repository does NOT use Gradle: it drives the
-// SDK build-tools directly (android/build-apk.sh), because Gradle is not
-// installed in the environment this port was developed in and pulling the
-// whole AGP dependency tree just to produce one APK is wasteful.
-//
-// These files are here for people who do have a normal Android Studio setup.
-// They produce an equivalent APK:
+// Gradle is the CANONICAL app build. The emulator core and SDL2 are native and
+// built out-of-tree by android/build-android.sh into
+// <repo>/build/android/<abi>/libdosbox.so; this module stages that library into
+// the APK. (The older no-Gradle android/build-apk.sh drove javac->d8 directly
+// and cannot compile Kotlin — it is kept only as a legacy/native-CI helper.)
 //
 //   ./gradlew assembleDebug     -> build/outputs/apk/debug/app-debug.apk
 //   ./gradlew assembleRelease   -> build/outputs/apk/release/app-release.apk
+//   ./gradlew bundleRelease     -> build/outputs/bundle/release/app-release.aab
 //
-// Verified on 2026-11-10 with Gradle 8.7 + AGP 8.1.4 on JDK 21: the release
-// APK comes out with the same signing certificate, the same version
-// (versionCode/versionName are taken from -PappVersionCode/-PappVersionName),
-// the same v1+v2+v3 signature schemes and byte-identical libdosbox.so files as
-// android/build-apk.sh --release. See android/README.md for the comparison
-// table.
-//
-// Note: AGP 8.1.4 warns that it was only tested up to compileSdk 34. The
-// warning is harmless here (the app targets API 21 and uses nothing newer),
-// and android.suppressUnsupportedCompileSdk=36 in gradle.properties silences
-// it.
+// Versions come from gradle/libs.versions.toml. The release signing certificate,
+// the v1+v2+v3 schemes and the version mapping are unchanged from the historical
+// build (see android/README.md).
 plugins {
-    id 'com.android.application'
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
 }
 
-// The emulator ships 640x400 DOS text and the picture is scaled by the SDL
-// renderer, so the app itself is the only thing in this module.
+// The ABIs whose native libraries are staged into the APK.
 def nativeAbis = ['arm64-v8a', 'armeabi-v7a', 'x86_64']
 
-// The version is kept in one place so that the Gradle build and the
-// no-Gradle script (android/build-apk.sh --version-code/--version-name)
-// can be given the same numbers:
+// The version is kept in one place so the Gradle build and the legacy
+// no-Gradle script can be given the same numbers:
 //
 //   gradle assembleRelease -PappVersionCode=7 -PappVersionName=0.7.0
 //
 // The default comes from the VERSION file at the repo root, which
-// bin/release.sh mirrors from the release tag - so the tag is the single
+// bin/release.sh mirrors from the release tag — so the tag is the single
 // source of truth. -PappVersionCode / -PappVersionName still win.
 def versionFile = rootProject.file('../VERSION')
 def repoVersion = versionFile.exists() ? versionFile.text.trim() : '1.0.0.1'
 def repoVersionParts = repoVersion.split('\\.')
-def repoVersionCode = repoVersionParts.length == 4
-        ? repoVersionParts[0].toInteger() * 1000000
-        + repoVersionParts[1].toInteger() * 10000
-        + repoVersionParts[2].toInteger() * 100
-        + repoVersionParts[3].toInteger()
-        : 1
+// versionCode = major*1e6 + minor*1e4 + patch*1e2 + build (monotonic).
+// Operators are kept at the end of each line so Groovy continues the
+// expression across the line breaks.
+def repoVersionCode = 1
+if (repoVersionParts.length == 4) {
+    repoVersionCode = repoVersionParts[0].toInteger() * 1000000 +
+            repoVersionParts[1].toInteger() * 10000 +
+            repoVersionParts[2].toInteger() * 100 +
+            repoVersionParts[3].toInteger()
+}
 
 def appVersionCode = (project.findProperty('appVersionCode') ?: repoVersionCode).toInteger()
 def appVersionName = project.findProperty('appVersionName') ?: repoVersion
@@ -58,9 +52,9 @@ def appVersionName = project.findProperty('appVersionName') ?: repoVersion
 def stagedJniLibs = layout.buildDirectory.dir('generated/jniLibs')
 
 // The canonical manifest carries android:package, because aapt2 needs it for
-// the no-Gradle build (android/build-apk.sh). AGP 8 does not allow that
-// attribute any more - the namespace in build.gradle takes its place - so
-// the Gradle build works on a copy with the attribute removed.
+// the legacy no-Gradle build. AGP 8 does not allow that attribute any more —
+// the namespace below takes its place — so the Gradle build works on a copy
+// with the attribute removed.
 def generatedManifest = layout.buildDirectory.file('generated/AndroidManifest.xml')
 
 tasks.register('generateManifest') {
@@ -90,14 +84,14 @@ tasks.register('stageNativeLibs', Copy) {
 android {
     namespace 'com.whereq.dosbox'
     // The SDK in this environment carries android-36; the app itself uses
-    // nothing newer than API 21, the compile SDK only decides which
-    // platform the sources are compiled against.
+    // nothing newer than API 21. The compile SDK only decides which platform
+    // the sources are compiled against.
     compileSdk 36
     buildToolsVersion '36.0.0'
     defaultConfig {
         applicationId 'com.whereq.dosbox'
         minSdk 21
-        targetSdk 34
+        targetSdk 35
         versionCode appVersionCode
         versionName appVersionName
     }
@@ -132,16 +126,16 @@ android {
                 storePassword storePass
                 keyAlias aliasName
                 keyPassword keyPass
-                // Match android/build-apk.sh: v1 + v2 + v3 signature schemes.
+                // Match the historical build: v1 + v2 + v3 signature schemes.
                 enableV1Signing true
                 enableV2Signing true
                 enableV3Signing true
             } else {
                 // Without a key the release build cannot be signed properly.
                 // Fall back to the debug key so that "assembleRelease" still
-                // produces an installable APK for local testing - it stays
+                // produces an installable APK for local testing — it stays
                 // debuggable in that case and must not be shipped.
-                logger.warn('No release keystore configured - falling back to the debug key. ' +
+                logger.warn('No release keystore configured — falling back to the debug key. ' +
                         'Set WHEREQ_RELEASE_KEYSTORE and WHEREQ_RELEASE_STORE_PASS for a real release build.')
                 storeFile file("${System.getProperty('user.home')}/.android/debug.keystore")
                 storePassword 'android'
@@ -171,13 +165,17 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
     sourceSets {
         main {
             jniLibs.srcDirs = [stagedJniLibs.get().asFile]
             // AGP 8 refuses a package attribute in the source manifest (the
-            // namespace above replaces it), while aapt2 - which the no-Gradle
-            // build uses - needs it. So the canonical manifest keeps the
-            // package and Gradle works on a copy without it.
+            // namespace above replaces it), while aapt2 — which the legacy
+            // no-Gradle build uses — needs it. So the canonical manifest keeps
+            // the package and Gradle works on a copy without it.
             manifest.srcFile generatedManifest
         }
     }
@@ -187,6 +185,14 @@ android {
             useLegacyPackaging false
         }
     }
+}
+
+dependencies {
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.annotation
+    implementation libs.kotlinx.coroutines.android
+
+    testImplementation libs.junit
 }
 
 tasks.named('preBuild') {

@@ -1,18 +1,17 @@
 #!/bin/bash
-# build-apk.sh - assemble the Android APK *without Gradle*.
+# build-apk.sh - LEGACY: assemble the Android APK *without Gradle*.
 #
-# Gradle is not installed in this environment and pulling the whole AGP
-# dependency tree just to produce one APK is wasteful, so we drive the SDK
-# build-tools directly:
+# DEPRECATED. The app layer is now Kotlin, which this javac-only path cannot
+# compile. The canonical build is Gradle (android/app/build.gradle, driven by
+# `bin/build.sh apk`). This script is kept only for emergencies and native-only
+# CI; reach it with `bin/build.sh apk --legacy-apk`. It drives the SDK
+# build-tools directly, for a Java-only source tree:
 #
 #   aapt2 compile/link  ->  resources + AndroidManifest + R.java
-#   javac              ->  .class files
+#   javac              ->  .class files   (JAVA ONLY - no Kotlin)
 #   d8                 ->  classes.dex
 #   zip                ->  add dex + jniLibs into the apk
 #   zipalign/apksigner ->  aligned, signed apk
-#
-# A Gradle build (android/app/build.gradle) is provided as well for anyone
-# who has a normal Android Studio setup; both produce the same APK.
 #
 # Usage:
 #   ./android/build-apk.sh [options] [abi ...]

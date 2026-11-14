@@ -27,11 +27,17 @@ ROOT="$(cd "$HERE/.." && pwd)"
 WIN_SDK="/mnt/c/Users/googo/AppData/Local/Android/Sdk"
 WIN_HOME="/mnt/c/Users/googo"
 AVD="${AVD:-Medium_Phone_API_37.0}"
-# Which APK to install. Override with APK_NAME=whereq-dosbox-release.apk to
-# install the production build (it is signed with a different key, so the
-# debug build has to be uninstalled first).
-APK_NAME="${APK_NAME:-whereq-dosbox-debug.apk}"
-APK_SRC="$ROOT/build/apk/$APK_NAME"
+# Which build to install. Override with APK_MODE=release to install the
+# production build (it is signed with a different key, so the debug build has
+# to be uninstalled first). The APK comes from the canonical Gradle output;
+# the legacy no-Gradle path (build/apk/) is used as a fallback.
+APK_MODE="${APK_MODE:-debug}"
+APK_NAME="app-$APK_MODE.apk"
+APK_SRC="$ROOT/android/app/build/outputs/apk/$APK_MODE/$APK_NAME"
+if [ ! -f "$APK_SRC" ]; then
+  APK_SRC="$ROOT/build/apk/whereq-dosbox-$APK_MODE.apk"   # legacy --legacy-apk output
+  APK_NAME="$(basename "$APK_SRC")"
+fi
 APK_WIN="C:\\Users\\googo\\$APK_NAME"
 PKG="com.whereq.dosbox"
 ACT="$PKG/.WhereqDosboxActivity"
@@ -91,7 +97,7 @@ do_boot() {
 }
 
 do_install() {
-  [ -f "$APK_SRC" ] || { echo "missing $APK_SRC - run android/build-apk.sh first" >&2; exit 1; }
+  [ -f "$APK_SRC" ] || { echo "missing $APK_SRC - run 'bin/build.sh android && bin/build.sh apk' first" >&2; exit 1; }
   cp "$APK_SRC" "/mnt/c/Users/googo/$APK_NAME"
   # Verify the copy really landed: a stale file here silently installs the
   # previous APK, which is very confusing to debug.

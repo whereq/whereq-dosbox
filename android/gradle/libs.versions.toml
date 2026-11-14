@@ -1,0 +1,26 @@
+# Gradle version catalog for the whereq-dosbox Android build.
+#
+# Single source of truth for plugin/library versions. The app layer is Kotlin +
+# AndroidX; the DOSBox emulator and SDL2 are native (libdosbox.so) and built
+# out-of-tree by android/build-android.sh, so they are NOT dependencies here.
+#
+# Kept intentionally small: the only runtime libraries are Kotlin stdlib (via the
+# Kotlin plugin), AndroidX core, annotations and coroutines.
+
+[versions]
+agp = "8.7.3"
+kotlin = "2.0.21"
+coroutines = "1.9.0"
+androidx-core = "1.13.1"
+androidx-annotation = "1.9.1"
+junit = "4.13.2"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core" }
+androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "androidx-annotation" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

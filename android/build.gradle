@@ -1,7 +1,10 @@
 // Root project of the whereq-dosbox Android build.
 //
-// The app has no dependencies at all - SDL2 is statically linked into
-// libdosbox.so and the Java side only uses the Android framework.
+// The app layer is Kotlin + AndroidX. SDL2 and the DOSBox emulator are native
+// (statically linked into libdosbox.so, built out-of-tree by
+// android/build-android.sh), so there are no native-code dependencies declared
+// through Gradle. Versions live in gradle/libs.versions.toml.
 plugins {
-    id 'com.android.application' version '8.1.4' apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.kotlin.android) apply false
 }

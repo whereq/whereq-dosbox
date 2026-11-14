@@ -59,7 +59,7 @@ in the emulator.
 | Android target | `arm64-v8a`, `armeabi-v7a`, `x86_64`, minSdk 21 |
 | Toolchain | NDK r27 + CMake; also builds a plain desktop Linux baseline |
 | Version scheme | `v{major}.{minor}.{patch}.{build}` — see `bin/release.sh` |
-| APK size | ~5.3 MB with all three ABIs |
+| APK size | ~15.5 MB with all three ABIs (the native libraries are stored uncompressed, so they can be mapped straight from the APK) |
 
 Files on the phone
 ------------------
@@ -167,11 +167,14 @@ build/apk/whereq-dosbox-debug.apk         the debug APK
 The individual steps are `bin/build.sh bootstrap | native | android | apk`,
 and each one delegates to the script that owns it
 (`third_party/fetch-sdl2.sh`, `toolchain/bootstrap-sysroot.sh`,
-`native/build-native.sh`, `android/build-android.sh`, `android/build-apk.sh`).
+`native/build-native.sh`, `android/build-android.sh`, and Gradle for the APK).
 
-`android/build-apk.sh` is the canonical APK build — it needs no Gradle
-installation and no dependency download. The Gradle project in
-`android/app/` produces an equivalent APK.
+The APK is built with **Gradle** (`android/app/`), which is the canonical path
+now that the app layer is Kotlin + AndroidX; `bin/build.sh apk` drives it. The
+native libraries are still built out of tree by `android/build-android.sh` and
+staged into the APK. The old no-Gradle `android/build-apk.sh` is kept as a
+legacy, Java-only helper (`bin/build.sh apk --legacy-apk`) and cannot compile
+the Kotlin sources.
 
 **[BUILDING.md](BUILDING.md) has the full guide**: every build scenario with
 a command you can paste — the first build on a fresh clone, the release APK

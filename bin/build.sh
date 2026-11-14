@@ -7,7 +7,7 @@
 #   bootstrap  -> third_party/fetch-sdl2.sh, toolchain/bootstrap-sysroot.sh
 #   native     -> native/build-native.sh
 #   android    -> android/build-android.sh
-#   apk        -> android/build-apk.sh
+#   apk        -> android/gradlew (canonical); android/build-apk.sh (--legacy-apk)
 #   icons      -> android/make-icons.py
 #
 # Usage:
@@ -36,6 +36,8 @@
 #   --version-code N        android:versionCode for the APK
 #   --version-name NAME     android:versionName for the APK
 #   --output PATH           write the APK here
+#   --legacy-apk            package with the old no-Gradle javac path (cannot
+#                           compile Kotlin; native-only / emergency use)
 #   --no-bootstrap          skip the bootstrap in "all"
 #
 # Examples:
@@ -55,7 +57,16 @@ ABIS="arm64-v8a armeabi-v7a x86_64"
 MODE=debug
 JOBS="$(nproc 2>/dev/null || echo 4)"
 DO_BOOTSTRAP=1
-APK_ARGS=()
+USE_LEGACY_APK=0
+# APK options, translated into Gradle properties / signing env by do_apk.
+VERSION_CODE=""
+VERSION_NAME=""
+KEYSTORE=""
+KS_PASS=""
+KEY_PASS=""
+KEY_ALIAS=""
+OUTPUT=""
+LEGACY_APK_ARGS=()
 
 # ------------------------------------------------------------------ output --
 if [ -t 1 ]; then
@@ -89,13 +100,14 @@ while [ $# -gt 0 ]; do
         --debug)   MODE=debug; shift ;;
         --abis)    ABIS="$2"; shift 2 ;;
         --jobs)    JOBS="$2"; shift 2 ;;
-        --keystore)   APK_ARGS+=(--keystore "$2"); shift 2 ;;
-        --ks-pass)    APK_ARGS+=(--ks-pass "$2"); shift 2 ;;
-        --key-pass)   APK_ARGS+=(--key-pass "$2"); shift 2 ;;
-        --alias)      APK_ARGS+=(--alias "$2"); shift 2 ;;
-        --version-code) APK_ARGS+=(--version-code "$2"); shift 2 ;;
-        --version-name) APK_ARGS+=(--version-name "$2"); shift 2 ;;
-        --output)     APK_ARGS+=(--output "$2"); shift 2 ;;
+        --keystore)   KEYSTORE="$2"; shift 2 ;;
+        --ks-pass)    KS_PASS="$2"; shift 2 ;;
+        --key-pass)   KEY_PASS="$2"; shift 2 ;;
+        --alias)      KEY_ALIAS="$2"; shift 2 ;;
+        --version-code) VERSION_CODE="$2"; shift 2 ;;
+        --version-name) VERSION_NAME="$2"; shift 2 ;;
+        --output)     OUTPUT="$2"; shift 2 ;;
+        --legacy-apk) USE_LEGACY_APK=1; shift ;;
         --no-bootstrap) DO_BOOTSTRAP=0; shift ;;
         -h|--help)  usage; exit 0 ;;
         *) die "unknown option: $1 (try: bin/build.sh help)" ;;
@@ -132,11 +144,56 @@ do_android() {
 }
 
 do_apk() {
-    step "APK ($MODE)"
-    local args=()
-    if [ "$MODE" = release ]; then args+=(--release); fi
-    "$ROOT/android/build-apk.sh" "${args[@]}" "${APK_ARGS[@]}"
-    ok "apk: build/apk/"
+    # The legacy escape hatch: the old no-Gradle, javac-only packager. It
+    # cannot compile the Kotlin app layer, so it is kept only for emergencies
+    # / native-only CI. The canonical path below drives Gradle.
+    if [ "$USE_LEGACY_APK" = 1 ]; then
+        step "APK ($MODE) via the legacy no-Gradle packager"
+        local args=()
+        if [ "$MODE" = release ]; then args+=(--release); fi
+        [ -n "$VERSION_CODE" ] && args+=(--version-code "$VERSION_CODE")
+        [ -n "$VERSION_NAME" ] && args+=(--version-name "$VERSION_NAME")
+        [ -n "$KEYSTORE" ] && args+=(--keystore "$KEYSTORE")
+        [ -n "$KS_PASS" ] && args+=(--ks-pass "$KS_PASS")
+        [ -n "$KEY_PASS" ] && args+=(--key-pass "$KEY_PASS")
+        [ -n "$KEY_ALIAS" ] && args+=(--alias "$KEY_ALIAS")
+        [ -n "$OUTPUT" ] && args+=(--output "$OUTPUT")
+        "$ROOT/android/build-apk.sh" "${args[@]}" "${LEGACY_APK_ARGS[@]}"
+        ok "apk: build/apk/"
+        return
+    fi
+
+    step "APK ($MODE) via Gradle"
+    for abi in $ABIS; do
+        [ -f "$ROOT/build/android/$abi/libdosbox.so" ] || \
+            die "native library for $abi is missing - run: bin/build.sh android --abis \"$ABIS\""
+    done
+
+    local task="assembleDebug"
+    [ "$MODE" = release ] && task="assembleRelease"
+
+    # Pass the version only when overridden; otherwise Gradle reads the VERSION
+    # file. Build the flag list conditionally so no empty args reach Gradle.
+    local gargs=()
+    [ -n "$VERSION_CODE" ] && gargs+=(-PappVersionCode="$VERSION_CODE")
+    [ -n "$VERSION_NAME" ] && gargs+=(-PappVersionName="$VERSION_NAME")
+
+    # Release signing is read from the environment by app/build.gradle; map the
+    # CLI flags onto it without printing the secrets.
+    [ -n "$KEYSTORE" ] && export WHEREQ_RELEASE_KEYSTORE="$KEYSTORE"
+    [ -n "$KS_PASS" ] && export WHEREQ_RELEASE_STORE_PASS="$KS_PASS"
+    [ -n "$KEY_PASS" ] && export WHEREQ_RELEASE_KEY_PASS="$KEY_PASS"
+    [ -n "$KEY_ALIAS" ] && export WHEREQ_RELEASE_ALIAS="$KEY_ALIAS"
+
+    ( cd "$ROOT/android" && ./gradlew ":app:$task" --console=plain "${gargs[@]}" )
+
+    local out="$ROOT/android/app/build/outputs/apk/$MODE/app-$MODE.apk"
+    if [ -n "$OUTPUT" ] && [ -f "$out" ]; then
+        cp "$out" "$OUTPUT"
+        ok "apk: $OUTPUT"
+    else
+        ok "apk: ${out#"$ROOT"/}"
+    fi
 }
 
 do_icons() {

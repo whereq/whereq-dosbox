@@ -138,17 +138,25 @@ Android platform libraries — SDL2 is statically linked in.
 
 ## APK
 
-Gradle is not installed in this environment, so `build-apk.sh` drives the SDK
-build-tools directly:
+The APK is built with **Gradle** — the canonical path now that the app layer is
+Kotlin + AndroidX:
 
 ```sh
-./android/build-apk.sh                       # debug, all ABIs found in build/android
-./android/build-apk.sh x86_64 arm64-v8a      # debug, a subset
+bin/build.sh apk                             # debug, via Gradle
+bin/build.sh apk --release                   # release, via Gradle
+cd android && ./gradlew :app:assembleDebug   # equivalent, directly
 ```
 
-`aapt2 compile/link` → `javac` → `d8` → `zip` → `zipalign` → `apksigner`,
-producing `build/apk/whereq-dosbox-debug.apk` (signed with a generated debug
-keystore in `build/debug.keystore`).
+The native libraries are built out of tree by `android/build-android.sh` into
+`build/android/<abi>/libdosbox.so` and staged into the APK by the Gradle module.
+
+The old no-Gradle `build-apk.sh` (`aapt2` → `javac` → `d8` → `zip` → `zipalign`
+→ `apksigner`) is kept only as a **legacy, Java-only helper** — it cannot
+compile the Kotlin sources. Reach it with `bin/build.sh apk --legacy-apk`:
+
+```sh
+./android/build-apk.sh x86_64 arm64-v8a      # legacy: debug, a subset (Java only)
+```
 
 The APK layout matters and is easy to get wrong:
 
@@ -238,11 +246,10 @@ keyPassword=...
 Both paths are never committed (`.gitignore` covers `*.keystore` and
 `keystore.properties`).
 
-> The Gradle files are **not exercised by this repository's own build** —
-> the canonical build is `android/build-apk.sh`, which drives the SDK
-> build-tools directly. The Gradle build additionally generates a copy of the
-> manifest without the `android:package` attribute, which AGP 8 rejects but
-> aapt2 needs.
+> Gradle **is** this repository's canonical build now. It generates a copy of
+> the manifest without the `android:package` attribute (which AGP 8 rejects but
+> the legacy aapt2 path needs), so the committed manifest keeps the attribute
+> as the single source of truth for `build-apk.sh --legacy-apk`.
 
 #### Gradle vs. the script: verified equivalent
 

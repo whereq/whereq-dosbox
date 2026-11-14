@@ -14,7 +14,9 @@
  *                     cannot run on GLES2; we use the SDL_Renderer path
  *   - no C_DEBUG    : internal debugger needs curses
  *   - no C_CURSOUT  : no ncursesw on Android
- *   - no C_DYNREC / C_DYNAMIC_X86 : no JIT (GCC plugin / x86-only)
+ *   - C_DYNREC     : portable recompiling (JIT) core; the aarch64/armv7/x64
+ *                     back ends in src/cpu/core_dynrec/ (no plugin needed)
+ *   - no C_DYNAMIC_X86 : the x86-only dynamic core (C_DYNREC is used instead)
  *   - no C_DIRECTSERIAL : Android has no usable RS-232
  *   - no LINUX      : keeps the host serial/port bits out of the build
  */
@@ -118,8 +120,23 @@
 #define C_UNALIGNED_MEMORY 1
 #define C_TARGETCPU @DOSBOX_C_TARGETCPU@
 
+/* C_DYNREC: the portable recompiling CPU core (a JIT). The per-architecture
+ * code generators live in src/cpu/core_dynrec/ — risc_armv8le.h (arm64-v8a),
+ * risc_armv4le.h (armeabi-v7a) and risc_x64.h (x86_64, emulator). There is no
+ * GCC plugin involved; the generators emit machine code into a cache buffer at
+ * run time and flush the I-cache with __builtin___clear_cache (a clang
+ * builtin). The buffer is made executable with an anonymous PROT_EXEC mmap on
+ * Android (see the __ANDROID__ branch in src/cpu/core_dynrec/cache.h), because
+ * Android forbids making malloc'd heap executable (W^X).
+ *
+ * The executable cache is only allocated when core=dynamic/auto is selected
+ * (CPU_Core_Dynrec_Cache_Init(enable) in src/cpu/cpu.cpp). With the shipped
+ * core=normal nothing is allocated and behaviour is identical to the
+ * interpreter build — so this is safe to enable before on-device validation. */
+#define C_DYNREC 1
+
 /* Deliberately NOT defined:
- *   C_DEBUG, C_CURSOUT, C_OPENGL, C_DYNREC, C_DYNAMIC_X86,
+ *   C_DEBUG, C_CURSOUT, C_OPENGL, C_DYNAMIC_X86,
  *   C_DIRECTSERIAL, C_MODEM, C_IPX
  */
 

@@ -238,9 +238,9 @@ application-debuggable
   4972336  lib/x86_64/libdosbox.so
 ```
 
-The result is `build/apk/whereq-dosbox-debug.apk`. A debug build is signed
-with the auto-generated debug key and stays `android:debuggable="true"`, so
-`run-as` works on it.
+The result is `android/app/build/outputs/apk/debug/app-debug.apk`. A debug
+build is signed with the auto-generated debug key and stays
+`android:debuggable="true"`, so `run-as` works on it.
 
 The version comes from the `VERSION` file at the repo root, which
 `bin/release.sh` keeps in sync with the git tag. Override it for a test
@@ -250,9 +250,12 @@ build:
 bin/build.sh apk --version-name 1.0.0.2 --version-code 1000002
 ```
 
-The underlying script is `android/build-apk.sh`. It drives the SDK build
-tools directly — `aapt2`, `javac`, `d8`, `zipalign`, `apksigner` — so no
-Gradle installation and no dependency download is needed.
+`bin/build.sh apk` drives **Gradle** (`android/gradlew`), the canonical build
+now that the app layer is Kotlin. The native libraries are built separately by
+`bin/build.sh android` and staged into the APK. The old `android/build-apk.sh`
+(`aapt2` → `javac` → `d8` → `zipalign` → `apksigner`) is a legacy, Java-only
+path reachable with `bin/build.sh apk --legacy-apk`; it cannot compile the
+Kotlin sources.
 
 ---
 
@@ -297,7 +300,7 @@ Verify the result before shipping it:
 
 ```sh
 BT=$(ls -d /home/whereq/android-sdk/build-tools/*/ | sort -V | tail -1)
-APK=build/apk/whereq-dosbox-release.apk
+APK=android/app/build/outputs/apk/release/app-release.apk
 
 ${BT}aapt2 dump badging "$APK" | grep -E "^package|debuggable"   # no debuggable line!
 ${BT}apksigner verify --verbose "$APK" | grep "Verified using v[123] scheme"
@@ -314,7 +317,7 @@ all read `true`.
 On a connected device or emulator with `adb` on the `PATH`:
 
 ```sh
-adb install -r build/apk/whereq-dosbox-release.apk
+adb install -r android/app/build/outputs/apk/release/app-release.apk
 adb shell am start -n com.whereq.dosbox/.WhereqDosboxActivity
 ```
 
@@ -323,7 +326,7 @@ signature). Uninstall first:
 
 ```sh
 adb uninstall com.whereq.dosbox
-adb install build/apk/whereq-dosbox-release.apk
+adb install android/app/build/outputs/apk/release/app-release.apk
 ```
 
 `android/run-emulator.sh` drives the Windows-side emulator from WSL2 and

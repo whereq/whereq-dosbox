@@ -138,8 +138,12 @@ set(DOSBOX_SOURCES
     src/cpu/core_normal.cpp
     src/cpu/core_simple.cpp
     src/cpu/core_prefetch.cpp
-    # excluded: core_dyn_x86.cpp (x86-only JIT)
-    # excluded: core_dynrec.cpp  (needs a GCC plugin; NDK clang cannot build it)
+    # The portable recompiling (JIT) core. C_DYNREC=1 in config-android.h.in
+    # selects the per-arch code generator in src/cpu/core_dynrec/ (risc_armv8le
+    # for arm64-v8a, risc_armv4le for armeabi-v7a, risc_x64 for x86_64). It
+    # needs no GCC plugin; the earlier claim that it did was wrong.
+    src/cpu/core_dynrec.cpp
+    # excluded: core_dyn_x86.cpp (the x86-only dynamic core; C_DYNREC replaces it)
 
     src/debug/debug.cpp
     src/debug/debug_disasm.cpp
@@ -289,6 +293,29 @@ target_compile_options(dosbox PRIVATE
     -Wno-sign-compare
     -Wno-format-truncation
     -fno-strict-aliasing)
+
+# --------------------------------------------------------- optimization ----
+# There is no JIT on Android, so libdosbox.so runs the interpreter cores and
+# its speed IS the speed of the CPU-core interpreter loop (core_normal /
+# core_simple / core_prefetch) plus the VGA draw path. Push the optimizer past
+# the NDK Release default (-O2) and let ThinLTO inline across translation
+# units: the cores are large switch dispatchers that gain from cross-file
+# inlining, and the hot code is spread over several files (cpu/, hardware/vga*,
+# ints/int10*).
+#
+#   -O3               more aggressive inlining / unrolling / vectorization
+#   -flto=thin        cross-TU inlining; scalable, fast to link (NDK clang)
+#   -fomit-frame-pointer  frees a register in the inner loop
+#
+# -ffast-math is deliberately NOT enabled: the x87 FPU emulation and the DOS
+# timing code need IEEE semantics, and relaxing them would change what programs
+# compute. This block only changes how fast the SAME code runs, not what it does.
+target_compile_options(dosbox PRIVATE
+    $<$<CONFIG:Release>:-O3>
+    $<$<CONFIG:Release>:-flto=thin>
+    $<$<CONFIG:Release>:-fomit-frame-pointer>)
+target_link_options(dosbox PRIVATE
+    $<$<CONFIG:Release>:-flto=thin>)
 
 # The DOSBox core is vendored verbatim from the upstream 0.74 tree, which was
 # written for a much older compiler and trips over a number of checks that

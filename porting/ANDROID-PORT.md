@@ -286,7 +286,7 @@ makes NDK builds crawl. `toolchain/env.sh` now exports `WQ_ANDROID_SDK` /
 | `android/app/src/main/java/com/whereq/dosbox/WhereqDosboxActivity.java` | `SDLActivity` subclass: `getLibraries()` → `{"dosbox"}`, `getMainSharedObject()` → `<nativeLibraryDir>/libdosbox.so`, `getMainFunction()` → `SDL_main`, `getArguments()` → `{"-conf", "dosbox.conf"}`, immersive fullscreen |
 | `android/app/src/main/java/com/whereq/dosbox/DosboxNative.java` | JNI bridge (`nativePrepareEnvironment`, `nativeConfigDir`) |
 | `android/jni/dosbox_android.cpp` | sets `HOME` = app files dir and `chdir()`s there, so DOSBox's `~/.dosbox` and the `-conf` path land inside the app sandbox — **no upstream source change needed** |
-| `android/app/src/main/assets/dosbox.conf` | `[sdl] output=surface`, `[cpu] core=normal cycles=auto`, `[autoexec] mount c .` + `c:` |
+| `android/app/src/main/assets/dosbox.conf` | `[sdl] output=surface`, `[cpu] core=auto cycles=auto`, `[autoexec] mount c .` + `c:` |
 | `android/build-apk.sh` | builds the APK with the SDK build-tools directly (no Gradle in this environment) |
 | `android/run-emulator.sh` | drives the app on the emulator from WSL (boot / install / start / screenshot / logcat) |
 

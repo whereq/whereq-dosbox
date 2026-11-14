@@ -130,9 +130,10 @@
  * Android forbids making malloc'd heap executable (W^X).
  *
  * The executable cache is only allocated when core=dynamic/auto is selected
- * (CPU_Core_Dynrec_Cache_Init(enable) in src/cpu/cpu.cpp). With the shipped
- * core=normal nothing is allocated and behaviour is identical to the
- * interpreter build — so this is safe to enable before on-device validation. */
+ * (CPU_Core_Dynrec_Cache_Init(enable) in src/cpu/cpu.cpp). The shipped
+ * core=auto allocates it at the first switch into protected mode, so a
+ * real-mode-only program never pays for it and never touches the RWX
+ * mapping; core=normal remains the fallback if the mmap fails. */
 #define C_DYNREC 1
 
 /* Deliberately NOT defined:

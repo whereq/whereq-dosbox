@@ -403,17 +403,34 @@ Deliberately disabled (see `android/cmake/config-android.h.in` for the reasons):
 |---|---|
 | `C_OPENGL` | DOSBox's own GL path is desktop fixed-function GL; GLES2 has no fixed pipeline. We use the SDL_Renderer path instead (`SDL_HINT_RENDER_DRIVER=opengles2`). |
 | `C_DEBUG`, `C_CURSOUT` | need curses / ncursesw — not available on Android |
-| `C_DYNREC` | needs a GCC plugin (not buildable with NDK clang) and Android 10+ forbids executing writable memory |
-| `C_DYNAMIC_X86` | x86/x64 only |
+| `C_DYNAMIC_X86` | x86/x64 only — the portable `C_DYNREC` core is used instead |
 | `C_DIRECTSERIAL`, `LINUX` | no usable RS-232 on Android; `LINUX` also switches on the host serial code |
 | `HAVE_PWD_H` | bionic's `getpwnam()` is a stub that always returns NULL |
 | `C_FPU_X86` | selects x86 inline asm (`fpu_instructions_x86.h`); ARM needs the portable FPU |
 
 ## CPU core on Android
 
-There is no JIT available, so the emulator runs the interpreter cores
-(`core=normal`, `core=simple`, `core=prefetch`). Measured on the desktop
-baseline (x86_64, Intel Core Ultra 7 155H):
+`C_DYNREC` is enabled: the **portable recompiling core** (a JIT) is compiled
+into `libdosbox.so` for arm64-v8a, armeabi-v7a and x86_64. It needs no GCC
+plugin — the code generators in `src/cpu/core_dynrec/` emit machine code into a
+cache buffer at run time and flush the I-cache with `__builtin___clear_cache`.
+The buffer is made executable with an anonymous `PROT_EXEC` mmap on Android
+(`src/cpu/core_dynrec/cache.h`), because Android forbids making malloc'd heap
+executable (W^X).
+
+The shipped config uses **`core=auto`** (`android/app/src/main/assets/dosbox.conf`):
+
+* A program that stays in real mode runs on the **interpreter**, exactly as
+  before — the JIT never engages.
+* A program that switches into protected mode hands over to the **recompiler**
+  at the first mode switch (`src/cpu/cpu.cpp`), and the RWX code cache is
+  allocated at that moment.
+* If the cache cannot be allocated, DOSBox exits with
+  `E_Exit("Allocating dynamic cache failed")`. Set `core=normal` in
+  `dosbox.conf` as the fallback.
+
+The interpreter cores (`core=normal`, `core=simple`, `core=prefetch`) stay
+available. Measured on the desktop baseline (x86_64, Intel Core Ultra 7 155H):
 
 | core | IPS | vs. 3 M instr/s real-time budget |
 |---|---|---|
@@ -427,12 +444,13 @@ be measured on real hardware.**
 
 ## Remaining work
 
-1. **Java app polish** — back button, lifecycle (`onPause`/`onResume` must not
-   lose emulator state), `android/app/build.gradle` for people with a normal
-   Android Studio setup.
+1. **App polish** — the app layer is Kotlin with AndroidX and the Gradle build
+   (`android/app/build.gradle`) is the canonical one. Still worth doing: back
+   button, lifecycle (`onPause`/`onResume` must not lose emulator state).
 2. **Storage** — `chdir` into the app-private files dir is done (see the JNI
-   glue) and `mount c .` + `c:` gives a `C:\>` prompt; what is missing is
-   SAF-based import/export for game bundles.
+   glue) and `mount c .` + `c:` gives a `C:\>` prompt. SAF import is done too:
+   bundles are installed through the SAF picker and the working folder can be
+   picked with a tree picker. What is missing is SAF-based *export*.
 3. **Input** — touch→mouse and the on-screen keyboard are done. Still missing:
    gamepad mapping (the tree has *zero* `SDL_CONTROLLER*` support and DOSBox
    still uses the legacy `SDL_Joystick` API), an on-screen joystick for games,

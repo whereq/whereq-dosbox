@@ -5,9 +5,21 @@ without building it.
 
 | file | version | size |
 |---|---|---|
+| [whereq-dosbox-1.0.0.6.apk](whereq-dosbox-1.0.0.6.apk) | 1.0.0.6 | 15.5 MB |
 | [whereq-dosbox-1.0.0.5.apk](whereq-dosbox-1.0.0.5.apk) | 1.0.0.5 | 15.5 MB |
 | [whereq-dosbox-1.0.0.4.apk](whereq-dosbox-1.0.0.4.apk) | 1.0.0.4 | 5.0 MB |
 | [whereq-dosbox-1.0.0.3.apk](whereq-dosbox-1.0.0.3.apk) | 1.0.0.3 | 5.0 MB |
+
+## What changed in 1.0.0.6
+
+The CPU core is now `core=auto`. A program that stays in real mode runs on the
+interpreter, exactly as before; a program that switches into protected mode
+hands over to the recompiling (JIT) core, which is compiled into the native
+library for all three ABIs. Both paths were verified on the emulator —
+STARFALL in real mode, Ultima VIII in protected mode.
+
+If the JIT code cache cannot be allocated, put `core=normal` in
+`dosbox.conf` as the fallback.
 
 ## Installing it
 
@@ -19,6 +31,8 @@ without building it.
 The APK is signed with the release key of this repository, so it can be
 updated in place: a later version replaces it without uninstalling first.
 
+* SHA-256 of the 1.0.0.6 APK:
+  `a41d76eeb2c79eccf5afb4f77dcff8d7525d8c9c55c2fad982707520feed369a`
 * SHA-256 of the 1.0.0.5 APK:
   `562598cdf2ca9214f50af94604843acba8af90c292eeb7e06320532b313e4ac4`
 * Signing certificate (SHA-256):

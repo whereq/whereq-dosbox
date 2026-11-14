@@ -53,6 +53,13 @@ with the system file picker, unpacked, started with **Play**, and both
 `F1赛车1994` (F1 Formula One Championship) and `创世纪8` (Ultima VIII) ran
 in the emulator.
 
+The CPU core is set to `core=auto`: a program that stays in real mode runs on
+the interpreter, and a program that switches into protected mode hands over to
+the recompiling (JIT) core, which is compiled into `libdosbox.so` for all three
+ABIs. Both paths were verified on the emulator — STARFALL in real mode, Ultima
+VIII in protected mode. `core=normal` in `dosbox.conf` is the fallback if the
+JIT code cache cannot be allocated.
+
 | | |
 |---|---|
 | Emulator core | DOSBox r4305 (SDL2 branch) |

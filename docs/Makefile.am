@@ -35,5 +35,12 @@ GUIDE_SCREENSHOTS = \
   screenshots/android-n8-18-save-states-restored-slot.png \
   screenshots/android-n8-19-notification-permission.png \
   screenshots/android-n8-20-launcher-home-icon.png \
-  screenshots/android-n8-21-app-info.png
+  screenshots/android-n8-21-app-info.png \
+  screenshots/android-n8-22-keyboard-symbols.png \
+  screenshots/android-n8-23-keyboard-functions.png \
+  screenshots/android-n8-24-game-mode-hybrid.png \
+  screenshots/android-n8-25-game-mode-action.png \
+  screenshots/android-n8-26-game-mode-point.png \
+  screenshots/android-n8-27-game-mode-profile-picker.png \
+  screenshots/android-n8-28-game-mode-remap.png
 

@@ -181,6 +181,10 @@ Two keys change what the pads show:
 
 The switched key lights up while its layer is on.
 
+![The punctuation layer, with the #+= key lit](screenshots/android-n8-22-keyboard-symbols.png)
+
+![The function layer, with the Fn key lit](screenshots/android-n8-23-keyboard-functions.png)
+
 **Modifiers work two ways.** *Tap* Ctrl, Alt or Shift and it stays armed for
 the next key — Ctrl, then C. *Hold* it and it behaves like a real key for as
 long as your finger is down, which is what a game expects of its fire and
@@ -207,6 +211,8 @@ Some games want a gamepad, not a typewriter. **Game Mode** replaces the keyboard
 pads with a console-style controller: a direction pad and a trackball, with the
 buttons a DOS game actually fires, jumps and strafes with.
 
+![Game Mode in the Hybrid profile — an 8-way D-pad on the left, the mouse buttons and the trackball on the right](screenshots/android-n8-24-game-mode-hybrid.png)
+
 **Getting in and out is a nod to the old days.** With the keyboard pads showing,
 switch **Caps Lock** on first — double-tap **Shift**, and the key turns blue and
 reads *CAPS* — then enter the **Konami code** on the pads —
@@ -221,11 +227,17 @@ The gold button at the top-left names the current **profile**; tap it to cycle,
 long-press for a picker. Each game remembers the profile and D-pad you last used
 with it.
 
+![The Game profile picker — Hybrid, Action and Point & click, and Remap buttons…](screenshots/android-n8-27-game-mode-profile-picker.png)
+
 | profile | left thumb | right thumb | for |
 |---|---|---|---|
 | **Hybrid** (default) | 8-way D-pad | trackball | games that mix keys and mouse — Dune II, X-COM, Doom with a mouse |
 | **Action** | 8-way D-pad | FIRE / JUMP / USE / ENT buttons | keyboard arcade/shooters — Wolf3D, Keen, Prince of Persia |
 | **Point** | big LEFT / RIGHT mouse buttons | trackball | mouse-only games — Monkey Island, Civilization, Lemmings |
+
+![Game Mode in the Action profile — FIRE, JUMP, USE and ENT on the right, beside the D-pad](screenshots/android-n8-25-game-mode-action.png)
+
+![Game Mode in the Point & click profile — big LEFT and RIGHT mouse buttons on the left, a trackball on the right](screenshots/android-n8-26-game-mode-point.png)
 
 The **trackball** moves the pointer the way a laptop touchpad does — stroke to
 move, **tap to click** — rather than jumping it to where you touch. In Hybrid,
@@ -258,6 +270,8 @@ profile) and choose **Remap buttons…**. The screen enters *remap mode*: a bann
 along the top says *"Tap a button to remap"*, and the buttons you can change are
 outlined in gold. **Tap one** and a list of keys opens — pick the one you want.
 **DONE** (or the banner) leaves remap mode.
+
+![Remap mode in the Action profile — the buttons you can change are outlined in gold, under a banner that says Tap a button to remap](screenshots/android-n8-28-game-mode-remap.png)
 
 | you can change | you cannot change |
 |---|---|

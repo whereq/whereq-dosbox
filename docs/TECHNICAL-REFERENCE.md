@@ -3452,13 +3452,14 @@ The three layers, as they run:
 
 | | a wide screen | 18:9 |
 |---|---|---|
-| Letters | [`android-n7-pads-letters.png`](screenshots/android-n7-pads-letters.png) | [`android-n7-pads-18x9-letters.png`](screenshots/android-n7-pads-18x9-letters.png) |
-| Symbols (**#+=**) | [`android-n7-pads-symbols.png`](screenshots/android-n7-pads-symbols.png) | [`android-n7-pads-18x9-symbols.png`](screenshots/android-n7-pads-18x9-symbols.png) |
-| Functions (**Fn**) | [`android-n7-pads-functions.png`](screenshots/android-n7-pads-functions.png) | [`android-n7-pads-18x9-functions.png`](screenshots/android-n7-pads-18x9-functions.png) |
+| Letters | [`android-n8-03-dos-boot-prompt.png`](screenshots/android-n8-03-dos-boot-prompt.png) | [`android-n8-29-keyboard-18x9-letters.png`](screenshots/android-n8-29-keyboard-18x9-letters.png) |
+| Symbols (**#+=**) | [`android-n8-22-keyboard-symbols.png`](screenshots/android-n8-22-keyboard-symbols.png) | [`android-n8-29-keyboard-18x9-symbols.png`](screenshots/android-n8-29-keyboard-18x9-symbols.png) |
+| Functions (**Fn**) | [`android-n8-23-keyboard-functions.png`](screenshots/android-n8-23-keyboard-functions.png) | [`android-n8-29-keyboard-18x9-functions.png`](screenshots/android-n8-29-keyboard-18x9-functions.png) |
 
-The letter layer is captured on a real phone (22:9, 2376×1080); the symbol and
-function layers are emulator captures at 20:9 (2400×1080). The 18:9 column is
-the emulator with the display resized to 2160×1080.
+All six are captures of the release build on the emulator: the wide column at
+20:9 (2400×1080), the 18:9 column with the display resized to 2160×1080. The
+earlier n7 series also kept a real-phone capture of the letter layer (22:9,
+2376×1080), listed below.
 
 ---
 
@@ -4658,6 +4659,16 @@ evidence, not of the app (§11.6).
 | [`android-n7-keyboard-pads-design.png`](screenshots/android-n7-keyboard-pads-design.png) | the to-scale **design drawing** of the letter layer |
 | [`android-n7-keyboard-pads-design-symbols.png`](screenshots/android-n7-keyboard-pads-design-symbols.png) | the design drawing of the symbol layer |
 | [`android-n7-keyboard-pads-design-fn.png`](screenshots/android-n7-keyboard-pads-design-fn.png) | the design drawing of the function layer |
+| [`android-n8-22-keyboard-symbols.png`](screenshots/android-n8-22-keyboard-symbols.png) | the console pads, **symbol layer** (`#+=`), on the release build |
+| [`android-n8-23-keyboard-functions.png`](screenshots/android-n8-23-keyboard-functions.png) | the console pads, **function layer** (`Fn`), on the release build |
+| [`android-n8-24-game-mode-hybrid.png`](screenshots/android-n8-24-game-mode-hybrid.png) | Game Mode, **Hybrid** profile — the D-pad and the trackball |
+| [`android-n8-25-game-mode-action.png`](screenshots/android-n8-25-game-mode-action.png) | Game Mode, **Action** profile — FIRE, JUMP, USE and ENT |
+| [`android-n8-26-game-mode-point.png`](screenshots/android-n8-26-game-mode-point.png) | Game Mode, **Point & click** profile — the big mouse buttons |
+| [`android-n8-27-game-mode-profile-picker.png`](screenshots/android-n8-27-game-mode-profile-picker.png) | the **Game profile** picker, with *Remap buttons…* |
+| [`android-n8-28-game-mode-remap.png`](screenshots/android-n8-28-game-mode-remap.png) | remap mode — the buttons you can change, outlined in gold |
+| [`android-n8-29-keyboard-18x9-letters.png`](screenshots/android-n8-29-keyboard-18x9-letters.png) | the letter layer on an **18:9** display, captured on the release build |
+| [`android-n8-29-keyboard-18x9-symbols.png`](screenshots/android-n8-29-keyboard-18x9-symbols.png) | the symbol layer on 18:9 |
+| [`android-n8-29-keyboard-18x9-functions.png`](screenshots/android-n8-29-keyboard-18x9-functions.png) | the function layer on 18:9 |
 | [`android-release-apk.png`](screenshots/android-release-apk.png) | the release APK in the file manager |
 | [`android-release-install-boot.png`](screenshots/android-release-install-boot.png) | the release APK booting |
 | [`n5-gradle-release.png`](screenshots/n5-gradle-release.png) | the Gradle release build |

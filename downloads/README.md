@@ -16,12 +16,39 @@ repository's history, at their own tag — for example
 
 | version | file | size |
 |---|---|---|
-| 1.0.0.16 | [`whereq-dosbox-1.0.0.16.apk`](https://github.com/whereq/whereq-dosbox/releases/download/v1.0.0.16/whereq-dosbox-1.0.0.16.apk) | 16 510 058 bytes (15.8 MB) |
+| 1.0.0.17 | [`whereq-dosbox-1.0.0.17.apk`](https://github.com/whereq/whereq-dosbox/releases/download/v1.0.0.17/whereq-dosbox-1.0.0.17.apk) | 16 510 522 bytes (15.8 MB) |
 
-* SHA-256 of the 1.0.0.16 APK:
-  `183f16ee3fd219a878b56b6a08758a184370b834a0fef63b63a7aea7f4faa773`
+* SHA-256 of the 1.0.0.17 APK:
+  `796203db84f31e994c45a3965fe3919b5e7a030a5ad8e45e4a9eabbed3f4ac0a`
 * Signing certificate (SHA-256):
   `b16b480d5a1ff6d35baff0b15fa3fc4b0ee815e500861fbff1b062c9bf7d3933`
+
+## What changed in 1.0.0.17
+
+A **maintenance** release: two things in **Game Mode** that were wrong in a way
+only the screen could show, and the **privacy policy**, which now lives in the
+repository next to the code and the licences.
+
+* **The FIRE button shows that it can be remapped.** While the remap mode is
+  on, the buttons that can be remapped get an outline. The FIRE button is
+  filled with the same gold as the outline, so the outline was invisible and
+  the button looked like any other one. The outline now follows the button it
+  marks: gold on the dark buttons, dark brown on the gold FIRE button.
+* **The D-pad button names the mode you actually have.** The button in the
+  bottom row of the left pad cycles the D-pad output between **ARROWS**,
+  **NUMPAD** and **WASD**, and it carries the name of the current mode. When
+  the app remembered a different mode for that game, the button kept the name
+  of the mode the bar had been built with, so it could say *ARROWS* while the
+  D-pad was sending *WASD*.
+* **The privacy policy is in the repository.** The app collects no data and
+  does not ask for the `INTERNET` permission, so it cannot send anything
+  anywhere even if it wanted to. The policy says so in full, and now lives in
+  the repository as `docs/PRIVACY.md` — next to `COPYING` and `NOTICE`, where
+  the whole history of it is public. The README links to it, and the
+  launcher's footer opens it next to the link to the licence screen.
+
+The emulator core, the bundle launcher, the keyboard and the save states are
+unchanged: **every save state written by the earlier releases loads normally**.
 
 ## What changed in 1.0.0.16
 

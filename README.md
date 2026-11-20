@@ -535,7 +535,7 @@ A **milestone tag** marks a phase rather than a release: `milestone/<name>`,
 annotated, and deliberately outside the `vX.Y.Z.A` scheme so the release
 script never picks it up. `milestone/android-migration-complete` marks the end
 of the Android migration phase — from there the project is in maintenance. It
-rides on the current release, `v1.0.0.16`.
+rides on the current release, `v1.0.0.17`.
 
 The production APK is signed with the release key, which is never committed:
 

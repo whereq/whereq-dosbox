@@ -470,7 +470,7 @@ fixes and documentation polish, no new features.
 
 A milestone tag points at one commit, so it is **moved on** when a later
 release carries the same state — the migration marker was placed at
-`v1.0.0.10` and moved to `v1.0.0.16`:
+`v1.0.0.10` and moved to `v1.0.0.17`:
 
 ```sh
 git tag -f -a milestone/<name> -m "What the milestone means" <release commit>

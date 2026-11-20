@@ -668,6 +668,18 @@ class GameModeView(context: Context) : FrameLayout(context) {
         showRemapBanner()
     }
 
+    /**
+     * Puts the gamepad into remap mode.
+     *
+     * The user reaches it from the profile button's long-press menu; this is
+     * the same code path, exposed so that a test can put the gamepad into
+     * that mode and look at the outline it draws.
+     */
+    @VisibleForTesting
+    fun enterRemapModeForTest() {
+        enterRemapMode()
+    }
+
     /** Leaves remap mode — the buttons go back to sending their keys. */
     fun exitRemapMode() {
         if (!remapMode) return

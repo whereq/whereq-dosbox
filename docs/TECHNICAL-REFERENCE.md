@@ -3851,6 +3851,7 @@ of test:
 | `LicensesActivityTest` (3 cases) | the device | the licence screen carries the GPL, the notices and the link to the source, and the two assets are in the installed app |
 | `LauncherFooterTest` (3 cases) | the device | the foot of the launcher carries the link to the licences and to the privacy policy, and each of them asks the app for the right thing |
 | `RemapOutlineTest` (5 cases) | the JVM | the outline that marks a remappable button contrasts with the chip it marks: the gold FIRE chip gets a dark outline, the dark chips get the gold one, and **the outline is never the colour of the chip** |
+| `GameModeRemapOutlineTest` (2 cases) | the device | the **pixels** of the real gamepad: the outline the app draws on the FIRE button is the dark colour, and the outline on a dark button is the gold |
 | `PrivacyPolicyTest` (3 cases) | the JVM | the privacy policy is in the repository, at `docs/PRIVACY.md`; the link the app hands to the browser names that exact file; and the README links to it |
 
 The instrumented tests press the back button the way a user does — through the
@@ -3868,7 +3869,7 @@ because only the input pipeline reaches the back dispatcher.
 
 ```
 :app:testDebugUnitTest          15 tests, 0 failures
-:app:connectedDebugAndroidTest   8 tests, 0 failures
+:app:connectedDebugAndroidTest  10 tests, 0 failures
 ```
 
 ### 11.4 ▸ The OPL test: the proof in two lines

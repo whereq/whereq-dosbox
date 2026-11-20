@@ -260,6 +260,7 @@ app adds **no** emulator-core behaviour beyond what §10.7 describes.
 | `include/dos_inc.h`, `include/dos_system.h`, `include/vga.h`, `include/video.h` | the new prototypes | the save-state API |
 | `src/gui/Makefile.am`, `include/Makefile.am`, `src/dos/Makefile.am` | the new files | the desktop build stays in sync |
 | `src/Makefile.am` | the dos archive is listed a second time, after the gui archive | the save-state code in `gui/` calls into `dos/`, and a linker walks a static archive only once (§2.12) |
+| `docs/dosbox.1` | the SEE ALSO section, which pointed at `/usr/share/doc/dosbox`, is removed; the date in the `.TH` line is adjusted, as the page itself asks | that path is a Debian one and this build installs no such directory, so the reference pointed at nothing (§13.5) |
 
 The **autoconf build is untouched**: `configure.ac` and the root `Makefile.am`
 have not changed since the import. The Android build is a separate CMake
@@ -4165,6 +4166,26 @@ the **privacy policy**, in [`docs/PRIVACY.md`](PRIVACY.md).
 The app has **no `INTERNET` permission** (see the manifest), so it cannot fetch
 the page itself. It hands the URL to the browser — the normal way to do this,
 and the reason the app itself carries no network code.
+
+### 13.5 ▸ The man page
+
+`docs/dosbox.1` is the **DOSBox manual page** — the roff source that
+`man dosbox` renders — and it came in with the import, unmodified. It
+documents the *command line* of the desktop `dosbox` binary: `-fullscreen`,
+`-startmapper`, `-conf`, `-machine`, `-c`, `-exit`, `-printconf`, `-editconf`,
+`-resetmapper`, the internal commands and the special keys.
+
+| | |
+|---|---|
+| **Where it comes from** | DOSBox r4305's own `docs/` directory — the same `man_MANS = dosbox.1` line is in upstream's `docs/Makefile.am` |
+| **What the build does with it** | `man_MANS` makes the automake build install it as a real man page: the native desktop build puts it at `$(mandir)/man1/dosbox.1` |
+| **What the app does with it** | nothing — the APK is a Kotlin launcher over an SDLActivity and has no command line; no Android build step reads the file |
+| **The one local change** | the `SEE ALSO` section pointed at `/usr/share/doc/dosbox`, a Debian path that this build never creates, so the section was removed and the date in the `.TH` line adjusted, as the page itself asks |
+
+The change is marked inside the file (a roff comment in the header records
+what was changed and that upstream's last revision was Sep 08, 2015) and in
+`NOTICE`, because GPLv2 requires an altered file to be plainly marked as
+altered — the rest of the text is upstream's, word for word.
 
 ---
 

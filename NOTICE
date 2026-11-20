@@ -2,7 +2,7 @@ whereq-dosbox
 Copyright (C) 2026 The whereq authors
 
 This product includes software developed by the DOSBox Team and its
-contributors, imported here unmodified.
+contributors, imported here, with the changes listed below.
 
 --------------------------------------------------------------------------
 DOSBox
@@ -10,9 +10,15 @@ DOSBox
 
 The DOSBox emulator core in `src/`, `include/`, `visualc_net/` and `scripts/`
 is DOSBox r4305, imported verbatim from the Em-DOSBox project. The documents
-that came with it - `docs/dosbox.1`, `docs/PORTING` and `docs/README.video` -
-are part of that import and are kept unmodified; the WhereQ documents that
-sit beside them are listed below.
+that came with it - `docs/PORTING` and `docs/README.video` - are part of that
+import and are kept unmodified; the WhereQ documents that sit beside them
+are listed below.
+
+`docs/dosbox.1` is the one document from that import that has been changed.
+Its SEE ALSO section pointed at `/usr/share/doc/dosbox`, a path that this
+build never creates, so the section has been removed. The file is marked as
+altered in its own header, which records the change and the date of the last
+upstream revision (Sep 08, 2015). The rest of the text is upstream's.
 
     DOSBox - an open source DOS emulator
     Copyright (C) 2002-2019 The DOSBox Team

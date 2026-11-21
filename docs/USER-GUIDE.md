@@ -135,7 +135,7 @@ Press **Play**.
 The emulator restarts the app and boots the game, and you land at a DOS
 prompt:
 
-![The DOSBox welcome banner and the C:\> prompt, with the on-screen keyboard below it](screenshots/android-n8-03-dos-boot-prompt.png)
+![The DOSBox welcome banner and the C:\> prompt, with the two keyboard pads beside the picture](screenshots/android-n8-03-dos-boot-prompt.png)
 
 Type the game's name and press **Enter**. From then on it is the real game —
 the real keyboard, the real sound, the real mouse.
@@ -211,7 +211,7 @@ Some games want a gamepad, not a typewriter. **Game Mode** replaces the keyboard
 pads with a console-style controller: a direction pad and a trackball, with the
 buttons a DOS game actually fires, jumps and strafes with.
 
-![Game Mode in the Hybrid profile — an 8-way D-pad on the left, the mouse buttons and the trackball on the right](screenshots/android-n8-24-game-mode-hybrid.png)
+![Game Mode in the Hybrid profile — L-CLICK and R-CLICK above an 8-way D-pad on the left, and Y, X, CTRL, ALT, the trackball, SPACE and ENT on the right](screenshots/android-n8-24-game-mode-hybrid.png)
 
 **Getting in and out is a nod to the old days.** With the keyboard pads showing,
 switch **Caps Lock** on first — double-tap **Shift**, and the key turns blue and
@@ -235,7 +235,7 @@ with it.
 | **Action** | 8-way D-pad | FIRE / JUMP / USE / ENT buttons | keyboard arcade/shooters — Wolf3D, Keen, Prince of Persia |
 | **Point** | big LEFT / RIGHT mouse buttons | trackball | mouse-only games — Monkey Island, Civilization, Lemmings |
 
-![Game Mode in the Action profile — FIRE, JUMP, USE and ENT on the right, beside the D-pad](screenshots/android-n8-25-game-mode-action.png)
+![Game Mode in the Action profile — an 8-way D-pad on the left, and FIRE, JUMP, USE and ENT on the right](screenshots/android-n8-25-game-mode-action.png)
 
 ![Game Mode in the Point & click profile — big LEFT and RIGHT mouse buttons on the left, a trackball on the right](screenshots/android-n8-26-game-mode-point.png)
 

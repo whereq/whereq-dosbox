@@ -55,14 +55,14 @@ bin/build.sh doctor
 ```
 ==> Toolchain
     git        /usr/bin/git
-    cmake      /home/whereq/android-sdk/cmake/3.22.1/bin/cmake
+    cmake      /home/whereq/android-sdk/cmake/3.31.6/bin/cmake
     javac      /usr/lib/jvm/java-21-openjdk-amd64/bin/javac
     python3    /usr/bin/python3
 ==> Android SDK
     SDK      /home/whereq/android-sdk
-    NDK      /home/whereq/android-sdk/ndk/27.1.12297006
-    build-tools /home/whereq/android-sdk/build-tools/36.0.0/
-    platform /home/whereq/android-sdk/platforms/android-36
+    NDK      /home/whereq/android-sdk/ndk/30.0.16248370
+    build-tools /home/whereq/android-sdk/build-tools/37.0.0/
+    platform /home/whereq/android-sdk/platforms/android-37.0
 ```
 
 ---
@@ -116,14 +116,14 @@ bin/build.sh bootstrap
 
 ```
 ==> Bootstrap: SDL2 sources + rootless toolchain
-    SDL2 sources -> third_party/SDL2-2.30.0
+    SDL2 sources -> third_party/SDL2-2.32.10
     toolchain -> toolchain/sysroot/
 ```
 
 or, if you prefer the scripts directly:
 
 ```sh
-./third_party/fetch-sdl2.sh          # SDL2 2.30.0 -> third_party/SDL2-2.30.0
+./third_party/fetch-sdl2.sh          # SDL2 2.32.10 -> third_party/SDL2-2.32.10
 ./toolchain/bootstrap-sysroot.sh     # rootless toolchain -> toolchain/sysroot/
 ```
 

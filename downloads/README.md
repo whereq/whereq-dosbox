@@ -23,6 +23,40 @@ repository's history, at their own tag — for example
 * Signing certificate (SHA-256):
   `b16b480d5a1ff6d35baff0b15fa3fc4b0ee815e500861fbff1b062c9bf7d3933`
 
+## What changed in 1.0.0.19
+
+A **maintenance** release: the whole build toolchain moves to the current
+stable line, and the app finally says the truth about the Android versions it
+runs on.
+
+* **The app runs on Android 6.0 or newer.** It always said so, and it did not:
+  the manifest claimed API 21 while the native library was built for API 24,
+  so the app really only started on Android 7.0. The library is now built for
+  **API 23** and the manifest says 23 - the promise and the shipped binary
+  agree for the first time, and the floor is one step lower than it has ever
+  been.
+* **The build toolchain is the current stable line.** AGP **9.5.3**, Gradle
+  **9.9.2**, Kotlin **2.4.21**, the current AndroidX releases, NDK **r30**,
+  CMake **3.31.6**, build-tools **37.0.0** and the API **37** platform. AGP 9
+  compiles the Kotlin sources itself, so the `kotlin-android` plugin is gone
+  from the build, and the DSL is the new one - properties instead of method
+  calls. None of this reaches the phone: it is the tools that make the APK.
+* **SDL2 2.32.10.** The Java shell is upstream 2.32.10 with exactly two
+  deliberate deviations, both there to keep the app the way it is: the six
+  `java.util.stream` calls in the audio-device code are plain loops, because
+  `java.util.stream` only exists from API 24, and the activity keeps
+  `SCREEN_ORIENTATION_FULL_SENSOR` instead of upstream's new `FULL_USER`,
+  because this app is a landscape-first DOS machine and `FULL_USER` would
+  freeze a game in portrait when auto-rotate is off.
+
+Nothing else moves. The emulator core, the bundle launcher, the on-screen
+keyboard, **Game Mode** and the save states are exactly what they were, and
+the APK is signed with the same key, so it installs over 1.0.0.18 without
+uninstalling it first: **every save state written by the earlier releases loads
+normally**.
+
+The **user guide** follows the floor and now asks for Android 6.0 or newer.
+
 ## What changed in 1.0.0.18
 
 A release with a **feature** and four **fixes**: a hardware keyboard finally

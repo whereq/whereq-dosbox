@@ -4,7 +4,18 @@
 // (statically linked into libdosbox.so, built out-of-tree by
 // android/build-android.sh), so there are no native-code dependencies declared
 // through Gradle. Versions live in gradle/libs.versions.toml.
+//
+// AGP 9 compiles the Kotlin sources itself (its "built-in Kotlin" support), so
+// the org.jetbrains.kotlin.android plugin is NOT applied here any more. AGP
+// ships with Kotlin Gradle plugin 2.2.10; the classpath below raises it to
+// the current stable release, which is the version named in
+// gradle/libs.versions.toml.
+buildscript {
+    dependencies {
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${libs.versions.kotlin.get()}")
+    }
+}
+
 plugins {
     alias(libs.plugins.android.application) apply false
-    alias(libs.plugins.kotlin.android) apply false
 }

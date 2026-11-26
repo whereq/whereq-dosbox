@@ -13,9 +13,13 @@
 // Versions come from gradle/libs.versions.toml. The release signing certificate,
 // the v1+v2+v3 schemes and the version mapping are unchanged from the historical
 // build (see android/README.md).
+//
+// The DSL is AGP 9's: the android block assigns properties (compileSdk = 37)
+// instead of calling methods (compileSdk 37), and the Kotlin sources are
+// compiled by AGP's built-in Kotlin support - the org.jetbrains.kotlin.android
+// plugin is not applied.
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
 }
 
 // The ABIs whose native libraries are staged into the APK.
@@ -24,7 +28,7 @@ def nativeAbis = ['arm64-v8a', 'armeabi-v7a', 'x86_64']
 // The version is kept in one place so the Gradle build and the legacy
 // no-Gradle script can be given the same numbers:
 //
-//   gradle assembleRelease -PappVersionCode=7 -PappVersionName=0.7.0
+//   gradlew assembleRelease -PappVersionCode=7 -PappVersionName=0.7.0
 //
 // The default comes from the VERSION file at the repo root, which
 // bin/release.sh mirrors from the release tag — so the tag is the single
@@ -52,7 +56,7 @@ def appVersionName = project.findProperty('appVersionName') ?: repoVersion
 def stagedJniLibs = layout.buildDirectory.dir('generated/jniLibs')
 
 // The canonical manifest carries android:package, because aapt2 needs it for
-// the legacy no-Gradle build. AGP 8 does not allow that attribute any more —
+// the legacy no-Gradle build. AGP does not allow that attribute any more —
 // the namespace below takes its place — so the Gradle build works on a copy
 // with the attribute removed.
 def generatedManifest = layout.buildDirectory.file('generated/AndroidManifest.xml')
@@ -82,21 +86,23 @@ tasks.register('stageNativeLibs', Copy) {
 }
 
 android {
-    namespace 'com.whereq.dosbox'
-    // The SDK in this environment carries android-36; the app itself uses
-    // nothing newer than API 21. The compile SDK only decides which platform
-    // the sources are compiled against.
-    compileSdk 36
-    buildToolsVersion '36.0.0'
+    namespace = 'com.whereq.dosbox'
+    // The compile SDK decides which platform the sources are compiled against.
+    // The app itself uses nothing newer than API 23.
+    compileSdk = 37
+    buildToolsVersion = '37.0.0'
+    // AGP 9 would otherwise fall back to NDK r28; the native library is built
+    // with r30, so the module is told which NDK the tree is on.
+    ndkVersion = '30.0.16248370'
     defaultConfig {
-        applicationId 'com.whereq.dosbox'
-        minSdk 21
-        targetSdk 36
-        versionCode appVersionCode
-        versionName appVersionName
+        applicationId = 'com.whereq.dosbox'
+        minSdk = 23
+        targetSdk = 37
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         // The instrumented test that presses the real back button on API 33+.
-        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+        testInstrumentationRunner = 'androidx.test.runner.AndroidJUnitRunner'
     }
 
     signingConfigs {
@@ -117,7 +123,7 @@ android {
             }
             // NOTE: the local names deliberately differ from the signingConfig
             // property names. In Groovy a local variable of the same name
-            // shadows the setter method, so "storeFile file(storeFile)" would
+            // shadows the setter method, so "storeFile = file(storeFile)" would
             // be parsed as String.call() and fail the build.
             def keystorePath = props['storeFile'] ?: System.getenv('WHEREQ_RELEASE_KEYSTORE')
             def storePass = props['storePassword'] ?: System.getenv('WHEREQ_RELEASE_STORE_PASS')
@@ -125,14 +131,14 @@ android {
             def keyPass   = props['keyPassword'] ?: System.getenv('WHEREQ_RELEASE_KEY_PASS') ?: storePass
 
             if (keystorePath && storePass) {
-                storeFile file(keystorePath)
-                storePassword storePass
-                keyAlias aliasName
-                keyPassword keyPass
+                storeFile = file(keystorePath)
+                storePassword = storePass
+                keyAlias = aliasName
+                keyPassword = keyPass
                 // Match the historical build: v1 + v2 + v3 signature schemes.
-                enableV1Signing true
-                enableV2Signing true
-                enableV3Signing true
+                enableV1Signing = true
+                enableV2Signing = true
+                enableV3Signing = true
             } else {
                 // Without a key the release build cannot be signed properly.
                 // Fall back to the debug key so that "assembleRelease" still
@@ -140,10 +146,10 @@ android {
                 // debuggable in that case and must not be shipped.
                 logger.warn('No release keystore configured — falling back to the debug key. ' +
                         'Set WHEREQ_RELEASE_KEYSTORE and WHEREQ_RELEASE_STORE_PASS for a real release build.')
-                storeFile file("${System.getProperty('user.home')}/.android/debug.keystore")
-                storePassword 'android'
-                keyAlias 'androiddebugkey'
-                keyPassword 'android'
+                storeFile = file("${System.getProperty('user.home')}/.android/debug.keystore")
+                storePassword = 'android'
+                keyAlias = 'androiddebugkey'
+                keyPassword = 'android'
             }
         }
     }
@@ -152,41 +158,46 @@ android {
         debug {
             // android:debuggable comes from the build type, not from the
             // manifest, so the release build is not debuggable.
-            debuggable true
-            jniDebuggable true
+            debuggable = true
+            jniDebuggable = true
         }
         release {
-            minifyEnabled false   // see proguard-rules.pro before enabling
-            shrinkResources false
-            signingConfig signingConfigs.release
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            minifyEnabled = false   // see proguard-rules.pro before enabling
+            shrinkResources = false
+            signingConfig = signingConfigs.release
+            proguardFiles = [getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro']
         }
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = '1.8'
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     sourceSets {
         main {
             jniLibs.srcDirs = [stagedJniLibs.get().asFile]
-            // AGP 8 refuses a package attribute in the source manifest (the
+            // AGP refuses a package attribute in the source manifest (the
             // namespace above replaces it), while aapt2 — which the legacy
             // no-Gradle build uses — needs it. So the canonical manifest keeps
             // the package and Gradle works on a copy without it.
-            manifest.srcFile generatedManifest
+            manifest.srcFile(generatedManifest)
         }
     }
 
-    packagingOptions {
+    packaging {
         jniLibs {
-            useLegacyPackaging false
+            useLegacyPackaging = false
         }
+    }
+}
+
+// AGP 9's built-in Kotlin support replaces the old android.kotlinOptions
+// block. The JVM target follows compileOptions.targetCompatibility, but it is
+// spelled out here so the two cannot drift apart.
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11
     }
 }
 

@@ -52,9 +52,11 @@ export WQ_ANDROID_SDK
 WQ_NDK_HOME="${WQ_NDK_HOME:-$(ls -d "$WQ_ANDROID_SDK"/ndk/* 2>/dev/null | sort -V | tail -1)}"
 export WQ_NDK_HOME
 
-for _cm in "$WQ_ANDROID_SDK"/cmake/*/bin; do
-    [ -d "$_cm" ] && PATH="$PATH:$_cm"
-done
+# The newest cmake in the SDK wins. The glob order would put an older one
+# first ("3.22.1" before "3.31.6"), and the first match on PATH is the one
+# that runs - so the versions are sorted and the newest is taken.
+WQ_CMAKE_BIN="${WQ_CMAKE_BIN:-$(ls -d "$WQ_ANDROID_SDK"/cmake/*/bin 2>/dev/null | sort -V | tail -1)}"
+[ -n "$WQ_CMAKE_BIN" ] && PATH="$PATH:$WQ_CMAKE_BIN"
 for _pt in "$WQ_ANDROID_SDK"/platform-tools; do
     [ -d "$_pt" ] && PATH="$PATH:$_pt"
 done

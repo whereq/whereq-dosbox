@@ -52,7 +52,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
 
-SDL2_VERSION=2.30.0
+SDL2_VERSION=2.32.10
 ABIS="arm64-v8a armeabi-v7a x86_64"
 MODE=debug
 JOBS="$(nproc 2>/dev/null || echo 4)"

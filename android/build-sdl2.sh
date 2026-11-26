@@ -17,9 +17,9 @@ ROOT="$(cd "$HERE/.." && pwd)"
 # toolchain/env.sh puts cmake/ninja on PATH and resolves the WSL-local NDK
 . "$ROOT/toolchain/env.sh"
 
-NDK="${ANDROID_NDK_HOME:-${WQ_NDK_HOME:-/home/whereq/android-sdk/ndk/27.1.12297006}}"
-SDL_SRC="${SDL_SRC:-$ROOT/third_party/SDL2-2.30.0}"
-ANDROID_PLATFORM="${ANDROID_PLATFORM:-24}"
+NDK="${ANDROID_NDK_HOME:-${WQ_NDK_HOME:-/home/whereq/android-sdk/ndk/30.0.16248370}}"
+SDL_SRC="${SDL_SRC:-$ROOT/third_party/SDL2-2.32.10}"
+ANDROID_PLATFORM="${ANDROID_PLATFORM:-23}"
 OUT_ROOT="$ROOT/build/sdl2"
 
 if ! command -v cmake >/dev/null 2>&1; then
@@ -29,7 +29,7 @@ fi
 
 if [ ! -d "$SDL_SRC" ]; then
   echo "SDL2 sources not found at $SDL_SRC" >&2
-  echo "Download SDL2-2.30.0 and unpack it there, or set SDL_SRC=..." >&2
+  echo "Download SDL2-2.32.10 and unpack it there, or set SDL_SRC=..." >&2
   exit 1
 fi
 if [ ! -d "$NDK" ]; then

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22.1)
+cmake_minimum_required(VERSION 3.31)
 
 # whereq-dosbox - Android native build (NDK + CMake)
 #
@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.22.1)
 # Usage (see build-sdl2.sh for the SDL2 prerequisite):
 #   cmake -S android -B build/android/arm64-v8a \
 #         -DCMAKE_TOOLCHAIN_FILE=$NDK/build/cmake/android.toolchain.cmake \
-#         -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-24 \
+#         -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-23 \
 #         -DCMAKE_BUILD_TYPE=Release \
 #         -DCMAKE_PREFIX_PATH=$PWD/build/sdl2/arm64-v8a
 #   cmake --build build/android/arm64-v8a -j
@@ -345,11 +345,11 @@ target_compile_options(dosbox PRIVATE
 #      (handled by AGP 8.5.1+ with useLegacyPackaging false).
 #
 # The NDK only does (1) by default from r28 onwards. This project builds with
-# NDK r27, so the linker has to be told explicitly - and it has to be told
-# on the link that produces the shipped library, because that is the link
-# that lays out the output segments. SDL2 is linked in statically, so it
-# inherits the alignment of this link; nothing has to be done to its own
-# build for the segments to end up 16 KB aligned.
+# NDK r30, where the linker already does it - but the flags are kept anyway,
+# and they have to be given on the link that produces the shipped library,
+# because that is the link that lays out the output segments. SDL2 is linked in
+# statically, so it inherits the alignment of this link; nothing has to be done
+# to its own build for the segments to end up 16 KB aligned.
 #
 # The flags are not Release-only on purpose: a debug build ships the same
 # native library, and it has to be installable on a 16 KB device as well.

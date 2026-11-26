@@ -55,9 +55,9 @@ Do not edit the generated PNGs by hand — they are overwritten on the next run.
 
 | Tool | Where | Notes |
 |---|---|---|
-| NDK r27 | `/home/whereq/android-sdk/ndk/27.1.12297006` | `ANDROID_NDK_HOME` |
-| cmake ≥ 3.22 | `/home/whereq/android-sdk/cmake/3.22.1/bin` | added to PATH by `toolchain/env.sh` |
-| SDL2 sources | `third_party/SDL2-2.30.0` | upstream tarball, unmodified |
+| NDK r30 | `/home/whereq/android-sdk/ndk/30.0.16248370` | `ANDROID_NDK_HOME` |
+| cmake ≥ 3.31 | `/home/whereq/android-sdk/cmake/3.31.6/bin` | added to PATH by `toolchain/env.sh` |
+| SDL2 sources | `third_party/SDL2-2.32.10` | upstream tarball, unmodified |
 
 `source toolchain/env.sh` once to get all of the above on `PATH`.
 
@@ -78,7 +78,7 @@ bin/build.sh all                         # native + android + apk
 or, without the wrapper:
 
 ```sh
-./third_party/fetch-sdl2.sh          # SDL2 2.30.0 sources -> third_party/
+./third_party/fetch-sdl2.sh          # SDL2 2.32.10 sources -> third_party/
 ./toolchain/bootstrap-sysroot.sh     # rootless toolchain  -> toolchain/sysroot/
 . toolchain/env.sh                   # cmake / nasm / m4 / pkg-config on PATH
 
@@ -114,7 +114,7 @@ The desktop baseline harness builds the same way:
 cmake -S android -B build/android/arm64-v8a \
       -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
       -DANDROID_ABI=arm64-v8a \
-      -DANDROID_PLATFORM=android-24 \
+      -DANDROID_PLATFORM=android-23 \
       -DCMAKE_BUILD_TYPE=Release \
       -DSDL2_PREFIX="$PWD/build/sdl2/arm64-v8a" \
       -DCMAKE_PREFIX_PATH="$PWD/build/sdl2/arm64-v8a"
@@ -131,6 +131,13 @@ cmake --build build/android/arm64-v8a -j"$(nproc)"
 | arm64-v8a | ELF64 aarch64 | 4,734,600 B |
 | armeabi-v7a | ELF32 ARM EABI5 | 3,450,388 B |
 | x86_64 | ELF64 x86-64 | 4,972,336 B (emulator only) |
+
+The sizes above are from the NDK r27 build; the current toolchain (NDK r30)
+produces slightly different numbers. The **API floor** matters more: the
+library is compiled for **API 23**, which is the app's `minSdk` — so the
+manifest's promise and the shipped binary agree. (Before this, the manifest
+said 21 while the library was built for 24, and the app really only ran on
+Android 7.0.)
 
 All export `SDL_main` (the entry point SDL2's `SDLActivity` calls through
 `SDL.nativeMain()`) and `JNI_OnLoad`, and link against nothing but the
@@ -247,7 +254,7 @@ Both paths are never committed (`.gitignore` covers `*.keystore` and
 `keystore.properties`).
 
 > Gradle **is** this repository's canonical build now. It generates a copy of
-> the manifest without the `android:package` attribute (which AGP 8 rejects but
+> the manifest without the `android:package` attribute (which AGP rejects but
 > the legacy aapt2 path needs), so the committed manifest keeps the attribute
 > as the single source of truth for `build-apk.sh --legacy-apk`.
 
@@ -291,8 +298,8 @@ cd android && ./gradlew assembleRelease -PappVersionCode=7 -PappVersionName=0.7.
 
 ### Gotchas hit while building this
 
-* SDL2 2.30.0's Android sensor back end uses `ALooper_pollAll`, unavailable in
-  NDK r27 → build SDL2 with `-DSDL_SENSOR=OFF` (already in `build-sdl2.sh`).
+* SDL2 2.32.10's Android sensor back end uses `ALooper_pollAll`, unavailable in
+  the NDK → build SDL2 with `-DSDL_SENSOR=OFF` (already in `build-sdl2.sh`).
 * The NDK toolchain sets `CMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY`, which hides
   the out-of-tree SDL2 prefix → the CMakeLists sets it to `BOTH` and offers an
   explicit `-DSDL2_PREFIX=` fallback.

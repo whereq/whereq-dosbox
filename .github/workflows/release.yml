@@ -59,7 +59,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq nasm
 
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         with:
           # The action's default is "tools platform-tools", and the "tools"
           # package was removed from the SDK repository years ago - asking for
@@ -70,8 +70,8 @@ jobs:
       - name: install the SDK packages
         run: |
           yes | sdkmanager --licenses >/dev/null
-          sdkmanager "platform-tools" "platforms;android-36" \
-                     "build-tools;36.0.0" "cmake;3.22.1" "ndk;27.1.12297006"
+          sdkmanager "platform-tools" "platforms;android-37.0" \
+                     "build-tools;37.0.0" "cmake;3.31.6" "ndk;30.0.16248370"
 
       - name: fetch the SDL2 sources
         run: ./third_party/fetch-sdl2.sh
@@ -82,7 +82,7 @@ jobs:
           . toolchain/env.sh
           ./android/build-android.sh "${{ matrix.abi }}"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: libdosbox-${{ matrix.abi }}
           path: build/android/${{ matrix.abi }}/libdosbox.so
@@ -102,32 +102,32 @@ jobs:
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
           # Cache the Gradle dependency tree and the wrapper distribution.
           # Without it every run re-downloads the whole AGP tree from Maven
           # Central, and a rate-limited answer (HTTP 429) fails the release
           # for reasons that have nothing to do with the code.
           cache: gradle
 
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         with:
           packages: 'platform-tools'
 
       - name: install the SDK packages
         run: |
           yes | sdkmanager --licenses >/dev/null
-          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+          sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
 
       - name: collect the native libraries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: libdosbox-arm64-v8a
           path: build/android/arm64-v8a
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: libdosbox-armeabi-v7a
           path: build/android/armeabi-v7a
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: libdosbox-x86_64
           path: build/android/x86_64
@@ -186,7 +186,7 @@ jobs:
         run: |
           apk="whereq-dosbox-${RELEASE_TAG#v}.apk"
           expected="b16b480d5a1ff6d35baff0b15fa3fc4b0ee815e500861fbff1b062c9bf7d3933"
-          "$ANDROID_SDK_ROOT/build-tools/36.0.0/apksigner" verify --print-certs "$apk" \
+          "$ANDROID_SDK_ROOT/build-tools/37.0.0/apksigner" verify --print-certs "$apk" \
             | tee certificate.txt
           actual="$(grep -o '[0-9a-f]\{64\}' certificate.txt | head -1)"
           if [ "$actual" != "$expected" ]; then
@@ -264,7 +264,7 @@ jobs:
               "$apk" "$apk.sha256"
           fi
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: whereq-dosbox-apk-${{ env.RELEASE_TAG }}
           path: |

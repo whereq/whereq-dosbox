@@ -35,7 +35,7 @@ Everything else in this guide is the detail behind those five steps.
 
 | | |
 |---|---|
-| Phone | Android 5.0 or newer, any phone or tablet |
+| Phone | Android 6.0 or newer, any phone or tablet |
 | Space | about 60 MB for the app, plus the size of the game |
 | Network | none needed once the app and the game are on the phone |
 | Account | none |

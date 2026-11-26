@@ -40,7 +40,7 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq nasm
 
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         with:
           # The action's default is "tools platform-tools", and the "tools"
           # package was removed from the SDK repository years ago - asking for
@@ -51,8 +51,8 @@ jobs:
       - name: install the SDK packages
         run: |
           yes | sdkmanager --licenses >/dev/null
-          sdkmanager "platform-tools" "platforms;android-36" \
-                     "build-tools;36.0.0" "cmake;3.22.1" "ndk;27.1.12297006"
+          sdkmanager "platform-tools" "platforms;android-37.0" \
+                     "build-tools;37.0.0" "cmake;3.31.6" "ndk;30.0.16248370"
 
       # The SDL2 sources are not committed (100+ MB of upstream code); this
       # script makes the dependency reproducible.
@@ -92,7 +92,7 @@ jobs:
           done
           echo "all PT_LOAD segments are 16 KB aligned"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: libdosbox-${{ matrix.abi }}
           path: build/android/${{ matrix.abi }}/libdosbox.so
@@ -105,38 +105,39 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # AGP 8.7 needs JDK 17.
+      # AGP 9 needs JDK 17 or newer. JDK 21 is used because the lint
+      # task in AGP 9.3 and later crashes on JDK 17.
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
           # Cache the Gradle dependency tree and the wrapper distribution.
           # Without it every run re-downloads the whole AGP tree from Maven
           # Central, and a rate-limited answer (HTTP 429) fails the build for
           # reasons that have nothing to do with the code.
           cache: gradle
 
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         with:
           packages: 'platform-tools'
 
       - name: install the SDK packages
         run: |
           yes | sdkmanager --licenses >/dev/null
-          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+          sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
 
       # The Gradle module stages the libraries out of build/android/<abi>/,
       # so they have to be in exactly that place.
       - name: collect the native libraries
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: libdosbox-arm64-v8a
           path: build/android/arm64-v8a
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: libdosbox-armeabi-v7a
           path: build/android/armeabi-v7a
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: libdosbox-x86_64
           path: build/android/x86_64
@@ -166,7 +167,7 @@ jobs:
           done
           echo "all three ABIs are packaged"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: whereq-dosbox-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk

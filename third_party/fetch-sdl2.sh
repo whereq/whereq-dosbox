@@ -8,7 +8,7 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VER="${1:-2.30.0}"
+VER="${1:-2.32.10}"
 TARBALL="SDL2-$VER.tar.gz"
 URL="https://github.com/libsdl-org/SDL/releases/download/release-$VER/$TARBALL"
 

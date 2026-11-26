@@ -254,8 +254,8 @@ two minutes of live chip time apart.
 | | |
 |---|---|
 | Emulator core | DOSBox r4305 (SDL2 branch) |
-| Android target | `arm64-v8a`, `armeabi-v7a`, `x86_64`, minSdk 21 |
-| Toolchain | NDK r27 + CMake; also builds a plain desktop Linux baseline |
+| Android target | `arm64-v8a`, `armeabi-v7a`, `x86_64`, minSdk 23 |
+| Toolchain | NDK r30 + CMake; also builds a plain desktop Linux baseline |
 | Version scheme | `v{major}.{minor}.{patch}.{build}` — see `bin/release.sh` |
 | APK size | ~15.7 MB with all three ABIs (the native libraries are stored uncompressed, so they can be mapped straight from the APK) |
 

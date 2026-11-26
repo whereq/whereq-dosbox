@@ -83,7 +83,7 @@ shell around it.
 ┌───────────────────────────────────────────────────────────────────────────┐
 │  Android app layer (Kotlin)                                              │
 │                                                                          │
-│  WhereqDosboxActivity ── SDLActivity (upstream SDL2 2.30.0, unmodified)  │
+│  WhereqDosboxActivity ── SDLActivity (upstream SDL2 2.32.10, two patches)  │
 │    ├── SurfaceView (SDLSurface)  ←→ SDL2 C library (statically linked)   │
 │    ├── VirtualKeyboardView  ── overlay: letters/symbols/functions layers  │
 │    ├── GameLauncherView     ── overlay: the "Files" panel, bundles, slots │
@@ -280,12 +280,12 @@ whereq-dosbox/
 ├── android/
 │   ├── CMakeLists.txt       the native project (DOSBox → libdosbox.so)
 │   ├── cmake/config-android.h.in   the Android config.h template
-│   ├── build-sdl2.sh        SDL2 2.30.0 → build/sdl2/<abi>/lib/libSDL2.a
+│   ├── build-sdl2.sh        SDL2 2.32.10 → build/sdl2/<abi>/lib/libSDL2.a
 │   ├── build-android.sh     SDL2 → libdosbox.so → strip → jniLibs
 │   ├── build-apk.sh         the legacy javac/d8 APK path (no Gradle)
 │   ├── jni/                 the JNI bridge
 │   └── app/                 the Kotlin app + the Gradle build
-├── third_party/SDL2-2.30.0/ the SDL2 tarball (not committed)
+├── third_party/SDL2-2.32.10/ the SDL2 tarball (not committed)
 ├── toolchain/                env.sh + the rootless sysroot bootstrap
 ├── native/                   the desktop Linux baseline build
 ├── bench/                    the CPU-core throughput probe
@@ -316,7 +316,7 @@ has no SDL2 dependency at runtime.
 <summary>The same diagram as text (the SVG above is the aligned version)</summary>
 
 ```
-   third_party/SDL2-2.30.0/          android/src/… + upstream src/
+   third_party/SDL2-2.32.10/          android/src/… + upstream src/
             │                                     │
             │  cmake -DSDL_SHARED=OFF              │  add_library(dosbox SHARED …)
             │  -DSDL_STATIC=ON                     │  122 translation units
@@ -343,13 +343,13 @@ import.
 
 | Setting | Value |
 |---|---|
-| `cmake_minimum_required` | 3.22.1 |
+| `cmake_minimum_required` | 3.31 |
 | `project()` | `whereq-dosbox C CXX` |
 | target | `add_library(dosbox SHARED …)` → `libdosbox.so` |
 | sources | 122 translation units, listed explicitly (§2.4) |
 | include dirs | `include/`, `src/`, `android/jni/`, the generated `include/` |
 | defines | `_GNU_SOURCE`, `HAVE_STRINGS_H` |
-| min platform | `android-24` |
+| min platform | `android-23` |
 
 ### 2.2 The ABI matrix
 
@@ -545,9 +545,9 @@ libandroid.so, libm.so, libdl.so, libGLESv1_CM.so, libGLESv2.so, libc.so` —
 
 | Setting | Value |
 |---|---|
-| version | 2.30.0 (fetched by `third_party/fetch-sdl2.sh`, not committed) |
-| NDK | `27.1.12297006` (default `/home/whereq/android-sdk/ndk/27.1.12297006`) |
-| platform | `android-24` |
+| version | 2.32.10 (fetched by `third_party/fetch-sdl2.sh`, not committed) |
+| NDK | `30.0.16248370` (default `/home/whereq/android-sdk/ndk/30.0.16248370`) |
+| platform | `android-23` |
 | output | `build/sdl2/<abi>` |
 | flags | `-DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_STATIC_PIC=ON -DSDL_SENSOR=OFF -DSDL_TEST=OFF -DSDL_EXAMPLES=OFF` |
 
@@ -556,7 +556,7 @@ Two of these are load-bearing:
 * **`SDL_STATIC_PIC=ON`** — a static archive linked into a shared object must be
   position-independent.
 * **`-DSDL_SENSOR=OFF`** — the Android sensor back end uses `ALooper_pollAll`,
-  which NDK r27 marks unavailable.
+  which the NDK marks unavailable.
 
 ### 2.10 The build script
 
@@ -789,11 +789,11 @@ secrets**; only the release workflow does.
 |---|---|
 | `runs-on: ubuntu-24.04` (pinned) | `ubuntu-latest` is a moving target. Pinning keeps the toolchain identical until it is deliberately bumped. |
 | `sudo apt-get install -y -qq nasm` | nasm assembles the x86 parts of SDL2. Without it SDL2 falls back to the C versions — that works, but it is not what the local build produces, and the two must stay identical. |
-| `android-actions/setup-android@v3` with `packages: 'platform-tools'` | the action's default is `"tools platform-tools"`, and the `tools` package was removed from the SDK repository years ago — asking for it fails the whole job. (Fix commit `f35d3ee`.) |
-| `sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0" "cmake;3.22.1" "ndk;27.1.12297006"` | the real packages come in a second step, because the action's own default fails. |
+| `android-actions/setup-android@v4` with `packages: 'platform-tools'` | the action's default is `"tools platform-tools"`, and the `tools` package was removed from the SDK repository years ago — asking for it fails the whole job. (Fix commit `f35d3ee`.) |
+| `sdkmanager "platform-tools" "platforms;android-37.0" "build-tools;37.0.0" "cmake;3.31.6" "ndk;30.0.16248370"` | the real packages come in a second step, because the action's own default fails. |
 | `./third_party/fetch-sdl2.sh` | the SDL2 sources are not committed (100+ MB); the step makes the dependency reproducible. |
 | `export WQ_ANDROID_SDK="$ANDROID_SDK_ROOT"` before sourcing `toolchain/env.sh` | the env script defaults to the WSL-local SDK; on the runner it must point at the runner's SDK. |
-| `actions/setup-java@v6`, `temurin`, `java-version: 17` | AGP 8.7 needs JDK 17. (Fix commit `1ee9487` — the workflows were on `setup-java` v5.) |
+| `actions/setup-java@v6`, `temurin`, `java-version: 21` | AGP 9 needs JDK 17 or newer; JDK 21 is used because the lint task in AGP 9.3 and later crashes on JDK 17. (Fix commit `1ee9487` — the workflows were on `setup-java` v5.) |
 | `cache: gradle` on the same `setup-java` step | every run used to re-download the whole AGP dependency tree from Maven Central, and a rate-limited answer (HTTP 429) failed the build for reasons that have nothing to do with the code. The cache makes the second and later runs resolve from the local store. `setup-java` rather than `gradle/actions/setup-gradle@v4`: the latter has no `cache-dependency-path` input and validates the wrapper jars by default (`validate-wrappers: true`), which is a failure mode to avoid. `setup-java`'s own defaults already match this repo (`**/*.gradle*`, `**/gradle.properties`, `**/gradle-wrapper.properties`), so the input is deliberately not overridden. |
 | `if-no-files-found: error` on every upload | a missing artifact must fail the job, not silently produce an empty download. |
 | the **ABI verification** step | the APK is unzipped and grepped for `lib/<abi>/libdosbox.so` for each ABI; a missing one fails with `::error::<abi> is missing from the APK`. This is the guard against the "1.8 MB APK with no `lib/`" failure of §2.10. |
@@ -913,8 +913,18 @@ that keeps the tag, the `VERSION` file, the manifest and the APK in step.
 ### 4.1 The Android shell
 
 The app layer is **Kotlin only**; there is no `.java` variant of the activity.
-The SDL2 shell under `android/app/src/main/java/org/libsdl/app/` is
-**byte-identical to upstream SDL2 2.30.0** — the port adds no patches to it.
+The SDL2 shell under `android/app/src/main/java/org/libsdl/app/` is upstream
+**SDL2 2.32.10** with exactly two deliberate deviations, both kept in the
+app's own tree rather than in the upstream tarball:
+
+| Deviation | Why |
+|---|---|
+| `SDLAudioManager.java`: the six `Arrays.stream(...)` calls are written as plain loops | `java.util.stream` only exists from **API 24** on; the app supports older Android versions than that, and the calls are on the audio-device paths that run on every device. |
+| `SDLActivity.java`: `SCREEN_ORIENTATION_FULL_SENSOR` instead of upstream's `FULL_USER` | upstream switched to `FULL_USER` in 2.32, which makes the activity obey the user's rotation lock. This app is a landscape-first DOS machine: with auto-rotate switched off, `FULL_USER` would freeze a game in portrait, so the older behaviour is kept. |
+
+Everything else in the shell is upstream's, byte for byte. The SDL2 **tarball**
+itself is never patched: `third_party/fetch-sdl2.sh` downloads the pristine
+release, and only the Java shell above differs.
 
 `WhereqDosboxActivity` (`android/app/src/main/java/com/whereq/dosbox/WhereqDosboxActivity.kt:58`)
 extends `SDLActivity` and overrides four hooks:

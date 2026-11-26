@@ -34,7 +34,7 @@ for ABI in "${ABIS[@]}"; do
   cmake -S "$HERE" -B "$BUILD" \
     -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
     -DANDROID_ABI="$ABI" \
-    -DANDROID_PLATFORM=android-24 \
+    -DANDROID_PLATFORM=android-23 \
     -DCMAKE_BUILD_TYPE=Release \
     -DSDL2_PREFIX="$SDL_PREFIX" \
     -DCMAKE_PREFIX_PATH="$SDL_PREFIX" >/dev/null

@@ -177,10 +177,10 @@ notification:
 
 ![The ongoing notification in the shade — WhereQ-DOSBox, Tou Jin Zi](screenshots/android-n9-30-running-in-background.png)
 
-Tap it and you are back in the game, at the exact frame you left — nothing was
-lost while you were away:
+Tap it and you are back in the game, with the emulator still running — nothing
+was lost while you were away:
 
-![Back in the game after tapping the notification — the same frame, the same score](screenshots/android-n9-31-tap-to-return.png)
+![Back in the game after tapping the notification — the emulator never stopped](screenshots/android-n9-31-tap-to-return.png)
 
 ---
 

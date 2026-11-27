@@ -9,7 +9,7 @@ man_MANS = dosbox.1
 EXTRA_DIST = $(man_MANS) README.video PORTING \
              TECHNICAL-REFERENCE.md USER-GUIDE.md INTERRUPTS.md \
              PRIVACY.md \
-             $(GUIDE_SCREENSHOTS)
+             $(GUIDE_SCREENSHOTS) $(GUIDE_SCREENSHOTS_N9)
 
 # The screenshots the user guide points at. The guide is distributed with
 # the release tarball, so the pictures it shows have to go with it.
@@ -46,4 +46,41 @@ GUIDE_SCREENSHOTS = \
   screenshots/android-n8-29-keyboard-18x9-letters.png \
   screenshots/android-n8-30-keyboard-columns.png \
   screenshots/android-n8-30b-keyboard-columns-qwerty.png
+
+# The n9 series: the complete user-guide set, taken from the release-signed
+# 1.0.0.19 APK.  Every screen of the app, in the order a reader meets them,
+# with one game running through all of it.
+GUIDE_SCREENSHOTS_N9 = \
+  screenshots/android-n9-01-files-panel-empty.png \
+  screenshots/android-n9-02-picker-download.png \
+  screenshots/android-n9-03-bundle-installed.png \
+  screenshots/android-n9-04-notification-permission.png \
+  screenshots/android-n9-05-game-running.png \
+  screenshots/android-n9-06-files-panel-resume.png \
+  screenshots/android-n9-07-dos-prompt.png \
+  screenshots/android-n9-08-game-mode-hybrid.png \
+  screenshots/android-n9-09-game-mode-profile-picker.png \
+  screenshots/android-n9-10-game-mode-action.png \
+  screenshots/android-n9-11-game-mode-point.png \
+  screenshots/android-n9-12-game-mode-remap.png \
+  screenshots/android-n9-13-game-mode-off.png \
+  screenshots/android-n9-14-states-empty.png \
+  screenshots/android-n9-15-saves-offer.png \
+  screenshots/android-n9-16-folder-permission.png \
+  screenshots/android-n9-17-files-panel-resume-slot.png \
+  screenshots/android-n9-18-states-slot.png \
+  screenshots/android-n9-19-settings.png \
+  screenshots/android-n9-20-saves-folder.png \
+  screenshots/android-n9-21-saves-folder-unset.png \
+  screenshots/android-n9-22-durable-folder-contents.png \
+  screenshots/android-n9-23-restore-games-offer.png \
+  screenshots/android-n9-24-games-restored.png \
+  screenshots/android-n9-25-states-restored-slot.png \
+  screenshots/android-n9-26-keyboard-symbols.png \
+  screenshots/android-n9-27-keyboard-functions.png \
+  screenshots/android-n9-28-launcher-home.png \
+  screenshots/android-n9-29-app-info.png \
+  screenshots/android-n9-30-running-in-background.png \
+  screenshots/android-n9-31-tap-to-return.png \
+  screenshots/android-n9-32-narrow-18x9.png
 

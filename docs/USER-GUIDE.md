@@ -59,12 +59,12 @@ installing from that app; allow it, and the install goes through.
 
 The app appears on your home screen as the **`>_` mark**:
 
-![The WhereQ-DOSBox icon on the home screen](screenshots/android-n8-20-launcher-home-icon.png)
+![The WhereQ-DOSBox icon on the launcher](screenshots/android-n9-28-launcher-home.png)
 
 The name in the app list, the notification, and the screen Android shows for
 the app all read **WhereQ-DOSBox**:
 
-![The Android App info page for WhereQ-DOSBox](screenshots/android-n8-21-app-info.png)
+![The Android App info page for WhereQ-DOSBox](screenshots/android-n9-29-app-info.png)
 
 ---
 
@@ -73,7 +73,7 @@ the app all read **WhereQ-DOSBox**:
 Open the app. You land in the **Files** panel — the screen that lists what
 you have installed:
 
-![The Files panel on a fresh install, with no games yet](screenshots/android-n8-01-files-panel-empty.png)
+![The Files panel on a fresh install, with no games yet](screenshots/android-n9-01-files-panel-empty.png)
 
 Two ways to get a game in, both at the top of the panel:
 
@@ -82,11 +82,14 @@ Two ways to get a game in, both at the top of the panel:
 | **+ Install a bundle (.zip)** | pick one `.zip` from your phone |
 | **Install all bundles from a folder** | unpack every `.zip` in one folder at once |
 
-Press **+ Install a bundle (.zip)**, and the system's file picker opens. Pick
-your game's `.zip` — usually in **Downloads** — and the app unpacks it and
-registers it. The panel then lists it:
+Press **+ Install a bundle (.zip)**, and the system's file picker opens on
+**Downloads**. Pick your game's `.zip` and press **USE THIS FOLDER**:
 
-![The Files panel with two games installed](screenshots/android-n8-02-files-panel.png)
+![The Android file picker, open on Downloads, with the game's .zip selected](screenshots/android-n9-02-picker-download.png)
+
+The app unpacks it and registers it. The panel then lists it:
+
+![The Files panel with the game installed, its entry point and size](screenshots/android-n9-03-bundle-installed.png)
 
 Each game in the list has four buttons:
 
@@ -135,16 +138,20 @@ Press **Play**.
 The emulator restarts the app and boots the game, and you land at a DOS
 prompt:
 
-![The DOSBox welcome banner and the C:\> prompt, with the two keyboard pads beside the picture](screenshots/android-n8-03-dos-boot-prompt.png)
+![The DOSBox welcome banner and the C:\> prompt, with the two keyboard pads beside the picture](screenshots/android-n9-07-dos-prompt.png)
 
 Type the game's name and press **Enter**. From then on it is the real game —
 the real keyboard, the real sound, the real mouse.
 
-Here is a real 1994 DOS game running on a phone:
+Here is a real 1994 DOS game running on a phone — 偷金子, the DOS Lode Runner:
+
+![偷金子 (Lode Runner) running, with the on-screen keyboard around it](screenshots/android-n9-05-game-running.png)
+
+And here are two more. Formula 1 (Domark, 1994):
 
 ![Formula 1 (Domark, 1994) running on the phone, with the on-screen keyboard around it](screenshots/android-n8-04-game-f1-menu.png)
 
-And here is the STARFALL demo:
+And the STARFALL demo:
 
 ![The STARFALL title screen](screenshots/android-n8-05-game-starfall-title.png)
 
@@ -154,13 +161,26 @@ The first time a game runs, Android may ask whether the app may send you
 notifications. It uses them for a "back to the game" reminder when you leave
 the app. Answer either way — declining only means you lose that reminder:
 
-![The Android notification permission prompt](screenshots/android-n8-19-notification-permission.png)
+![The Android notification permission prompt](screenshots/android-n9-04-notification-permission.png)
 
 When a game is running, the **File** key (top left) brings the Files panel
 back over it, and the panel shows a **Resume** line for the game that is
 running right now:
 
-![The Files panel over a running game, with Resume F1 above the list](screenshots/android-n8-02b-files-panel-resume.png)
+![The Files panel over a running game, with Resume tou-jin-zi above the list](screenshots/android-n9-06-files-panel-resume.png)
+
+### The game keeps running in the background
+
+WhereQ-DOSBox holds a foreground service while a game is running, so the
+emulator stays resident when you leave the app. The shade carries an ongoing
+notification:
+
+![The ongoing notification in the shade — WhereQ-DOSBox, Tou Jin Zi](screenshots/android-n9-30-running-in-background.png)
+
+Tap it and you are back in the game, at the exact frame you left — nothing was
+lost while you were away:
+
+![Back in the game after tapping the notification — the same frame, the same score](screenshots/android-n9-31-tap-to-return.png)
 
 ---
 
@@ -181,9 +201,9 @@ Two keys change what the pads show:
 
 The switched key lights up while its layer is on.
 
-![The punctuation layer, with the #+= key lit](screenshots/android-n8-22-keyboard-symbols.png)
+![The punctuation layer, with the #+= key lit](screenshots/android-n9-26-keyboard-symbols.png)
 
-![The function layer, with the Fn key lit](screenshots/android-n8-23-keyboard-functions.png)
+![The function layer, with the Fn key lit](screenshots/android-n9-27-keyboard-functions.png)
 
 **Modifiers work two ways.** *Tap* Ctrl, Alt or Shift and it stays armed for
 the next key — Ctrl, then C. *Hold* it and it behaves like a real key for as
@@ -210,7 +230,7 @@ to about 24 dp, against 33 dp on a 20:9 screen. The D-pad and the action keys
 keep their full size; it is the letters that get tight. The **#+=** and **Fn**
 layers are tight in the same way.
 
-![The letter layer on an 18:9 display — the same two pads, with the letter keys noticeably smaller](screenshots/android-n8-29-keyboard-18x9-letters.png)
+![The app on an 18:9 display — the same two pads, with the letter keys noticeably smaller](screenshots/android-n9-32-narrow-18x9.png)
 
 **Below 116 dp the pads give way to columns.** There is no longer room for a
 half-keyboard beside the picture, so the pads become a single column of keys per
@@ -235,7 +255,7 @@ Some games want a gamepad, not a typewriter. **Game Mode** replaces the keyboard
 pads with a console-style controller: a direction pad and a trackball, with the
 buttons a DOS game actually fires, jumps and strafes with.
 
-![Game Mode in the Hybrid profile — L-CLICK and R-CLICK above an 8-way D-pad on the left, and Y, X, CTRL, ALT, the trackball, SPACE and ENT on the right](screenshots/android-n8-24-game-mode-hybrid.png)
+![Game Mode in the Hybrid profile — L-CLICK and R-CLICK above an 8-way D-pad on the left, and Y, X, CTRL, ALT, the trackball, SPACE and ENT on the right](screenshots/android-n9-08-game-mode-hybrid.png)
 
 **Getting in and out is a nod to the old days.** With the keyboard pads showing,
 switch **Caps Lock** on first — double-tap **Shift**, and the key turns blue and
@@ -251,7 +271,7 @@ The gold button at the top-left names the current **profile**; tap it to cycle,
 long-press for a picker. Each game remembers the profile and D-pad you last used
 with it.
 
-![The Game profile picker — Hybrid, Action and Point & click, and Remap buttons…](screenshots/android-n8-27-game-mode-profile-picker.png)
+![The Game profile picker — Hybrid, Action and Point & click, and Remap buttons…](screenshots/android-n9-09-game-mode-profile-picker.png)
 
 | profile | left thumb | right thumb | for |
 |---|---|---|---|
@@ -259,9 +279,17 @@ with it.
 | **Action** | 8-way D-pad | FIRE / JUMP / USE / ENT buttons | keyboard arcade/shooters — Wolf3D, Keen, Prince of Persia |
 | **Point** | big LEFT / RIGHT mouse buttons | trackball | mouse-only games — Monkey Island, Civilization, Lemmings |
 
-![Game Mode in the Action profile — an 8-way D-pad on the left, and FIRE, JUMP, USE and ENT on the right](screenshots/android-n8-25-game-mode-action.png)
+![Game Mode in the Action profile — an 8-way D-pad on the left, and FIRE, JUMP, USE and ENT on the right](screenshots/android-n9-10-game-mode-action.png)
 
-![Game Mode in the Point & click profile — big LEFT and RIGHT mouse buttons on the left, a trackball on the right](screenshots/android-n8-26-game-mode-point.png)
+![Game Mode in the Point & click profile — big LEFT and RIGHT mouse buttons on the left, a trackball on the right](screenshots/android-n9-11-game-mode-point.png)
+
+**The exit code needs a D-pad.** The reverse Konami code is typed on the
+gamepad's **D-pad**, and **Point & click** does not have one — its left thumb
+gets the mouse buttons instead. Switch back to **Hybrid** (or **Action**) and
+the code works. With the pads back, the same ↑ ↑ ↓ ↓ ← → ← → and then **X, Y**
+returns you to the keyboard, and the game carries on underneath:
+
+![Back to the plain keyboard pads, after the reverse Konami code](screenshots/android-n9-13-game-mode-off.png)
 
 The **trackball** moves the pointer the way a laptop touchpad does — stroke to
 move, **tap to click** — rather than jumping it to where you touch. In Hybrid,
@@ -295,7 +323,7 @@ along the top says *"Tap a button to remap"*, and the buttons you can change are
 outlined in gold. **Tap one** and a list of keys opens — pick the one you want.
 **DONE** (or the banner) leaves remap mode.
 
-![Remap mode in the Action profile — the buttons you can change are outlined in gold, under a banner that says Tap a button to remap](screenshots/android-n8-28-game-mode-remap.png)
+![Remap mode in the Point & click profile — the buttons you can change are outlined in gold, under a banner that says Tap a button to remap](screenshots/android-n9-12-game-mode-remap.png)
 
 | you can change | you cannot change |
 |---|---|
@@ -318,17 +346,17 @@ exactly where you left it — even if the app was closed in between.
 
 Press **File**, then **States** next to the game:
 
-![The Save states sheet, with three empty slots](screenshots/android-n8-07-save-states-empty.png)
+![The Save states sheet, with three empty slots](screenshots/android-n9-14-states-empty.png)
 
 There are three slots. Press **Save** to freeze the game into slot 1, and the
 sheet shows when you did it:
 
-![The sheet with a saved slot - Slot 1, two minutes ago](screenshots/android-n8-13-save-states-slot.png)
+![The sheet with a saved slot — Slot 1, one minute ago, with Load now live](screenshots/android-n9-18-states-slot.png)
 
 Close the sheet and the Files panel carries a **Resume** line for the game,
 naming the slot and the moment it was made:
 
-![The Files panel with Resume starfall-v2 - slot 1 - just now](screenshots/android-n8-10-files-panel-resume-slot.png)
+![The Files panel with Resume tou-jin-zi · slot 1 · just now](screenshots/android-n9-17-files-panel-resume-slot.png)
 
 **Load** puts the game back. A slot survives quitting the app and rebooting
 the phone.
@@ -344,16 +372,16 @@ switch phones. Your games and your saves go with it.
 So the app asks, once, whether you want a second copy somewhere that is
 yours:
 
-![The Keep your saves safe prompt, after the first save](screenshots/android-n8-08-saves-offer.png)
+![The Keep your saves safe prompt, after the first save](screenshots/android-n9-15-saves-offer.png)
 
 The app says the same thing in its own dialog, which you can open at any time:
 
-![The Saves folder dialog, with no folder set yet](screenshots/android-n8-14-saves-folder-unset.png)
+![The Saves folder dialog, with no folder set yet](screenshots/android-n9-21-saves-folder-unset.png)
 
 Press **Choose folder**, and the system asks you to allow the app into a
 folder on your phone:
 
-![The system permission dialog for the folder](screenshots/android-n8-09-folder-permission.png)
+![The system permission dialog for the folder — Android will not hand an app the whole Download folder, so the app asks for one of its own](screenshots/android-n9-16-folder-permission.png)
 
 Pick a folder, press **USE THIS FOLDER**, and press **ALLOW**. From then on
 every slot is mirrored into that folder, compressed, next to the game itself.
@@ -361,9 +389,9 @@ every slot is mirrored into that folder, compressed, next to the game itself.
 You can see, and change, the folder at any time under **Config → Saves
 folder**:
 
-![The Settings dialog](screenshots/android-n8-11-settings-dialog.png)
+![The Settings dialog](screenshots/android-n9-19-settings.png)
 
-![The Saves folder dialog, with a folder set](screenshots/android-n8-12-saves-folder-dialog.png)
+![The Saves folder dialog, with a folder set](screenshots/android-n9-20-saves-folder.png)
 
 Two notes:
 
@@ -382,23 +410,23 @@ Uninstall the app, install it again, and choose the same folder. The app
 looks inside it and finds your games — they are still there, because they
 were never inside the app:
 
-![The folder on the phone after the app was uninstalled](screenshots/android-n8-15-durable-folder-contents.png)
+![The folder on the phone after the app was uninstalled](screenshots/android-n9-22-durable-folder-contents.png)
 
 The app notices the games that are not installed and offers to bring them
 back:
 
-![The Restore games prompt](screenshots/android-n8-16-restore-games-offer.png)
+![The Restore games prompt — this folder has 1 game that is not installed](screenshots/android-n9-23-restore-games-offer.png)
 
-Press **Restore**, and they come back with their names and their saves:
+Press **Restore**, and it comes back with its name and its save:
 
-![Restored two games, with their saves ready](screenshots/android-n8-17-games-restored.png)
+![Restored 1 game, with its save ready](screenshots/android-n9-24-games-restored.png)
 
 And the save state still knows when it was made:
 
-![The restored slot, still saying three minutes ago](screenshots/android-n8-18-save-states-restored-slot.png)
+![The restored slot, still saying six minutes ago](screenshots/android-n9-25-states-restored-slot.png)
 
-That last line is the point of the whole feature. A save that was made three
-minutes ago says *three minutes ago*, even after it was rebuilt from the
+That last line is the point of the whole feature. A save that was made six
+minutes ago says *six minutes ago*, even after it was rebuilt from the
 folder on a fresh install.
 
 ---

@@ -151,7 +151,7 @@ And here are two more. Formula 1 (Domark, 1994):
 
 ![Formula 1 (Domark, 1994) running on the phone, with the on-screen keyboard around it](screenshots/android-n8-04-game-f1-menu.png)
 
-And the STARFALL demo:
+And here is the STARFALL demo:
 
 ![The STARFALL title screen](screenshots/android-n8-05-game-starfall-title.png)
 

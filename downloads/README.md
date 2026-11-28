@@ -16,12 +16,52 @@ repository's history, at their own tag — for example
 
 | version | file | size |
 |---|---|---|
+| 1.0.0.20 | [`whereq-dosbox-1.0.0.20.apk`](https://github.com/whereq/whereq-dosbox/releases/download/v1.0.0.20/whereq-dosbox-1.0.0.20.apk) | — |
 | 1.0.0.19 | [`whereq-dosbox-1.0.0.19.apk`](https://github.com/whereq/whereq-dosbox/releases/download/v1.0.0.19/whereq-dosbox-1.0.0.19.apk) | 16 725 927 bytes (16.0 MB) |
 
+* SHA-256 of the 1.0.0.20 APK: *recorded when the release is published*
 * SHA-256 of the 1.0.0.19 APK:
   `39a6c53f9951247c706f08185e54cf7558ae137250866a1d41f27d6ba1ccb568`
 * Signing certificate (SHA-256):
   `b16b480d5a1ff6d35baff0b15fa3fc4b0ee815e500861fbff1b062c9bf7d3933`
+
+## What changed in 1.0.0.20
+
+A release with **three changes to saving a state**: the gamepad can save on its
+own, there are **five** slots instead of three, and a slot says *when* it was
+made in a way that tells two saves apart.
+
+* **The gamepad has a SAVE button.** Until now, saving a state from **Game
+  Mode** meant leaving the gamepad — typing the Konami code backwards to get
+  back to the keyboard, opening the launcher, and finding the game. The top bar
+  of the gamepad now carries a green **SAVE** chip, between the profile chip
+  and **ESC**. Tap it and the running machine is frozen straight away, into the
+  first free slot; when all five slots are full, into the **oldest** one, so
+  the four newest saves are the ones that survive. Hold it and the **Save
+  states** sheet opens over the gamepad, so a slot can be picked by hand — the
+  gamepad is still there when the sheet closes. A short toast says which slot
+  took the save, because the launcher that would normally carry that message is
+  not on screen in Game Mode.
+* **There are five slots, not three.** The count is now one constant,
+  `SaveStore.STATE_SLOTS`, read by the sheet, by the "newest slot" search and
+  by the durable backup alike, so they cannot disagree about how many slots
+  there are. Slots 4 and 5 are new files; the three older slots keep their
+  numbers and their contents.
+* **The time on a slot is exact once it is not "today".** A save made today
+  reads *just now*, *12 minutes ago* or *3 hours ago*. A save made yesterday
+  used to read *yesterday* — and two saves from yesterday then read the same,
+  with no way to tell which was the newer one. From a previous day on, the
+  sheet carries the clock time as well: **Yesterday 21:40** for yesterday, and
+  **Nov 25 09:12** for anything older. Two saves from the same day can now be
+  put in order by eye.
+
+The **save-state format did not change** — the three fixes are in the app
+layer, not in the file — so **every save state written by the earlier releases
+loads normally**, and the APK is signed with the same key, so it installs over
+1.0.0.19 without uninstalling it first.
+
+The **user guide** follows: the gamepad's SAVE button, the five slots and the
+exact times are all in it, with the frames that show them.
 
 ## What changed in 1.0.0.19
 
@@ -380,7 +420,7 @@ in the app layer.
 
 ## What changed in 1.0.0.8
 
-* **Save states.** Every game gets three slots. **States** in the Files panel
+* **Save states.** Every game gets five slots. **States** in the Files panel
   opens them; **Save** freezes the whole running machine — the CPU, the DOS
   memory, the video memory, the open DOS file handles, the hardware timers —
   and **Load** jumps back to that exact moment. A slot is a file on the phone,

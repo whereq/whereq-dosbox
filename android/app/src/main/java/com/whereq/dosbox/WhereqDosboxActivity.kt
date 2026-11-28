@@ -40,6 +40,10 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 /**
  * Minimal SDL2 shell around the DOSBox emulator.
@@ -284,6 +288,13 @@ class WhereqDosboxActivity : SDLActivity() {
     private var gameMode: GameModeView? = null
 
     /**
+     * The slots with a save in flight. A save is written off the UI thread and
+     * the file only appears when it is done, so a slot that is being written
+     * already counts as taken.
+     */
+    private val savingSlots = mutableSetOf<Int>()
+
+    /**
      * Swaps the keyboard pads for the Game Mode gamepad. The game's remembered
      * profile and D-pad output are restored; Hybrid is the default. Reached from
      * the keyboard's Konami code.
@@ -296,6 +307,10 @@ class WhereqDosboxActivity : SDLActivity() {
                 override fun onProfileChanged(profile: GameModeView.Profile) = saveGameProfile(profile)
                 override fun onDpadChanged(dpad: GameModeView.Dpad) = saveGameDpad(dpad)
                 override fun onRemapsChanged(remaps: Map<String, String>) = saveGameRemaps(remaps)
+
+                override fun onQuickSaveRequested() = quickSaveFromGameMode()
+
+                override fun onStatesRequested() = openStatesFromGameMode()
             })
             val lp = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT
@@ -424,7 +439,9 @@ class WhereqDosboxActivity : SDLActivity() {
                 override fun onResumeRequested() = resumeLastGame()
 
                 override fun onSaveStateRequested(bundle: GameBundle, slot: Int) =
-                    saveState(bundle, slot)
+                    // From Game Mode the launcher's status line is not on screen, so
+                    // the save has to announce itself with a toast instead.
+                    saveState(bundle, slot, announce = isGameModeVisible())
 
                 override fun onLoadStateRequested(bundle: GameBundle, slot: Int) =
                     loadState(bundle, slot)
@@ -503,7 +520,7 @@ class WhereqDosboxActivity : SDLActivity() {
     private fun newestSlot(bundle: GameBundle): Int? {
         var newest: Int? = null
         var newestTime = 0L
-        for (slot in 1..STATE_SLOTS) {
+        for (slot in 1..SaveStore.STATE_SLOTS) {
             val local = saveStore.localSlot(bundle.folder, slot)
             val time = if (local.exists() && local.length() > 0L) {
                 local.lastModified()
@@ -579,51 +596,193 @@ class WhereqDosboxActivity : SDLActivity() {
     /** @return a short "time ago" label for a saved slot (local or the durable
      *  mirror), or null when the slot is empty everywhere. */
     private fun slotLabel(bundle: GameBundle, slot: Int): String? {
+        val time = slotTime(bundle, slot) ?: return null
+        return relativeSlotTime(time)
+    }
+
+    /**
+     * When a slot was last written, or null when it holds nothing.
+     *
+     * The local copy is the working one; the durable mirror is only consulted
+     * when the local copy is gone, which is what happens after a reinstall.
+     */
+    private fun slotTime(bundle: GameBundle, slot: Int): Long? {
         val local = saveStore.localSlot(bundle.folder, slot)
-        val time = if (local.exists() && local.length() > 0L) {
-            local.lastModified()
-        } else {
-            saveStore.durableTimestamp(bundle.displayName, slot) ?: return null
-        }
+        if (local.exists() && local.length() > 0L) return local.lastModified()
+        return saveStore.durableTimestamp(bundle.displayName, slot)
+    }
+
+    /**
+     * How long ago a save was made, as a label for a slot.
+     *
+     * The relative wording ("5 min ago", "2 hours ago") is the friendliest thing
+     * for a save made today. It stops working the moment the granularity
+     * reaches a day, though: two slots saved yesterday both read "yesterday",
+     * and there is no way to tell which of the two is the newer one. So
+     * anything from a previous day carries the clock time as well - "Yesterday
+     * 21:40", "Nov 25 09:12" - and the slots can be put in order by eye.
+     */
+    private fun relativeSlotTime(time: Long): String {
         val now = System.currentTimeMillis()
         if (now - time < DateUtils.MINUTE_IN_MILLIS) {
             return "just now"
         }
-        return DateUtils.getRelativeTimeSpanString(
-            time, now, DateUtils.MINUTE_IN_MILLIS
-        ).toString()
+        if (isSameDay(time, now)) {
+            return DateUtils.getRelativeTimeSpanString(
+                time, now, DateUtils.MINUTE_IN_MILLIS
+            ).toString()
+        }
+        val clock = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(time))
+        val day = when {
+            isSameDay(time, startOfYesterday(now)) -> "Yesterday"
+            isSameYear(time, now) ->
+                SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(time))
+            else -> SimpleDateFormat("MMM d yyyy", Locale.getDefault()).format(Date(time))
+        }
+        return "$day $clock"
     }
+
+    /** Whether two instants fall on the same calendar day. */
+    private fun isSameDay(a: Long, b: Long): Boolean {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = a
+        val year = cal.get(Calendar.YEAR)
+        val day = cal.get(Calendar.DAY_OF_YEAR)
+        cal.timeInMillis = b
+        return year == cal.get(Calendar.YEAR) && day == cal.get(Calendar.DAY_OF_YEAR)
+    }
+
+    /** Whether an instant falls in the same calendar year as another. */
+    private fun isSameYear(a: Long, b: Long): Boolean {
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = a
+        val year = cal.get(Calendar.YEAR)
+        cal.timeInMillis = b
+        return year == cal.get(Calendar.YEAR)
+    }
+
+    /** Midnight at the start of the day before [now]. */
+    private fun startOfYesterday(now: Long): Long =
+        Calendar.getInstance().apply {
+            timeInMillis = now
+            add(Calendar.DAY_OF_YEAR, -1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
 
     /**
      * Snapshots the running machine into a slot. The native call hands the work
      * to the DOSBox thread and blocks until it is done, so it runs off the UI
      * thread. If a durable saves folder is set, the slot is also mirrored there
      * (gzip-compressed) so it survives a reinstall.
+     *
+     * @param announce show the result in a toast as well - used when the
+     *   launcher is not on screen, so the gamepad's own SAVE button can say
+     *   what it did.
      */
-    private fun saveState(bundle: GameBundle, slot: Int) {
+    private fun saveState(bundle: GameBundle, slot: Int, announce: Boolean = false) {
         launcher?.setStatus("Saving slot $slot…")
         val target = saveStore.localSlot(bundle.folder, slot)
+        // A save takes a moment to write, and the file only appears at the end.
+        // Marking the slot as taken right away keeps a second quick save from
+        // picking the slot that is still being written.
+        savingSlots.add(slot)
         workScope.launch {
-            val rc = withContext(Dispatchers.IO) {
-                target.parentFile?.mkdirs()
-                DosboxNative.nativeSaveState(target.absolutePath)
-            }
-            if (rc == DosboxNative.SAVESTATE_OK && saveStore.hasFolder()) {
-                launcher?.setStatus("Saved slot $slot · backing up…")
-                withContext(Dispatchers.IO) {
-                    saveStore.mirrorToDurable(bundle.displayName, bundle.folder, slot)
+            try {
+                val rc = withContext(Dispatchers.IO) {
+                    target.parentFile?.mkdirs()
+                    DosboxNative.nativeSaveState(target.absolutePath)
                 }
-            }
-            launcher?.setStatus(saveStateMessage(rc, slot))
-            // The slot that was just written is the newest one, so the "Resume"
-            // button has to say so - otherwise it still names the slot it would
-            // have used before.
-            refreshResumeButton()
-            // Offer, once, to keep saves across reinstalls.
-            if (rc == DosboxNative.SAVESTATE_OK) {
-                maybeOfferSavesFolder()
+                if (rc == DosboxNative.SAVESTATE_OK && saveStore.hasFolder()) {
+                    launcher?.setStatus("Saved slot $slot · backing up…")
+                    withContext(Dispatchers.IO) {
+                        saveStore.mirrorToDurable(bundle.displayName, bundle.folder, slot)
+                    }
+                }
+                val message = saveStateMessage(rc, slot)
+                launcher?.setStatus(message)
+                if (announce) {
+                    Toast.makeText(this@WhereqDosboxActivity, message, Toast.LENGTH_SHORT).show()
+                }
+                // The slot that was just written is the newest one, so the "Resume"
+                // button has to say so - otherwise it still names the slot it would
+                // have used before.
+                refreshResumeButton()
+                // Offer, once, to keep saves across reinstalls.
+                if (rc == DosboxNative.SAVESTATE_OK) {
+                    maybeOfferSavesFolder()
+                }
+            } finally {
+                savingSlots.remove(slot)
             }
         }
+    }
+
+    /**
+     * The game that is running right now, or null when nothing is.
+     */
+    private fun runningBundle(): GameBundle? {
+        val folder = currentGameFolder ?: return null
+        return library.list().firstOrNull { it.folder == folder }
+    }
+
+    /**
+     * The slot a quick save should write to: the first one that is still free,
+     * and - when they are all full - the oldest, so the four newest saves are
+     * the ones that survive.
+     */
+    private fun nextFreeSlot(bundle: GameBundle): Int {
+        var oldestSlot = 1
+        var oldestTime = Long.MAX_VALUE
+        for (slot in 1..SaveStore.STATE_SLOTS) {
+            if (savingSlots.contains(slot)) continue
+            val time = slotTime(bundle, slot)
+            if (time == null) return slot
+            if (time < oldestTime) {
+                oldestTime = time
+                oldestSlot = slot
+            }
+        }
+        return oldestSlot
+    }
+
+    /**
+     * The gamepad's SAVE button: snapshot the running game into a slot without
+     * going back to the keyboard pads for the Save states sheet.
+     */
+    private fun quickSaveFromGameMode() {
+        val bundle = runningBundle()
+        if (bundle == null) {
+            Toast.makeText(
+                this, "Start a game first — there is nothing to save yet", Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+        saveState(bundle, nextFreeSlot(bundle), announce = true)
+    }
+
+    /**
+     * The gamepad's SAVE button, held: open the Save states sheet over the
+     * gamepad, so a slot can be picked. Game Mode is still there behind it.
+     */
+    private fun openStatesFromGameMode() {
+        val bundle = runningBundle()
+        if (bundle == null) {
+            Toast.makeText(
+                this, "Start a game first — there is nothing to save yet", Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+        // The sheet is a dialog of its own, so it can float over the gamepad on
+        // its own: the Files panel behind it would only hide the game the player
+        // is in the middle of. The launcher view stays hidden, and the gamepad
+        // is what the player sees again once the sheet is closed.
+        if (launcher == null) showLauncher()
+        launcher?.setCurrentGame(currentGameFolder)
+        launcher?.visibility = View.GONE
+        launcher?.openStates(bundle)
     }
 
     /**
@@ -757,7 +916,7 @@ class WhereqDosboxActivity : SDLActivity() {
         val bundles = library.list()
         workScope.launch(Dispatchers.IO) {
             for (bundle in bundles) {
-                for (slot in 1..STATE_SLOTS) {
+                for (slot in 1..SaveStore.STATE_SLOTS) {
                     if (saveStore.localSlot(bundle.folder, slot).exists()) {
                         saveStore.mirrorToDurable(bundle.displayName, bundle.folder, slot)
                     }
@@ -1534,9 +1693,6 @@ class WhereqDosboxActivity : SDLActivity() {
 
         /** Whether the "keep saves across reinstalls" offer was already shown. */
         private const val KEY_SAVES_FOLDER_OFFERED = "saves_folder_offered"
-
-        /** Save-state slots offered per game (must match GameLauncherView). */
-        private const val STATE_SLOTS = 3
 
         /** loadState() sentinel: the slot does not exist (local or durable). */
         private const val SAVESTATE_NO_SLOT = -1

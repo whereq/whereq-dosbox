@@ -555,7 +555,7 @@ class GameLauncherView(context: Context, private val listener: Listener) : Frame
         hint.setPadding(0, 0, 0, dp(8))
         column.addView(hint)
 
-        for (slot in 1..STATE_SLOTS) {
+        for (slot in 1..SaveStore.STATE_SLOTS) {
             val saved = listener.stateSlotLabel(bundle, slot)
 
             val row = LinearLayout(context)
@@ -674,9 +674,6 @@ class GameLauncherView(context: Context, private val listener: Listener) : Frame
         private const val COLOR_DIM = 0xFF9AA0AA.toInt()
         private const val COLOR_ACCENT = 0xFFF5A623.toInt()
         private const val COLOR_RESUME = 0xFF4CAF50.toInt()
-
-        /** Save-state slots offered per game. */
-        private const val STATE_SLOTS = 3
 
         fun formatSize(bytes: Long): String = when {
             bytes >= 1024 * 1024 -> "${bytes / (1024 * 1024)} MB"

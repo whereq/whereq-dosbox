@@ -62,6 +62,19 @@ class GameModeView(context: Context) : FrameLayout(context) {
         fun onDpadChanged(dpad: Dpad)
         /** The per-game button remaps changed (slot "profile:defaultKey" -> key). */
         fun onRemapsChanged(remaps: Map<String, String>)
+
+        /**
+         * The player tapped SAVE on the gamepad: save the running game into a
+         * slot now, without leaving Game Mode for the keyboard.
+         */
+        fun onQuickSaveRequested()
+
+        /**
+         * The player held SAVE: open the Save states sheet, so a slot can be
+         * picked. The sheet opens over the gamepad, and Game Mode is still
+         * there when it closes.
+         */
+        fun onStatesRequested()
     }
 
     private var listener: Listener? = null
@@ -287,8 +300,21 @@ class GameModeView(context: Context) : FrameLayout(context) {
             val gold = chip(name, "game mode", COLOR_GOLD, textColor = COLOR_TEXT_ON_GOLD)
             gold.setOnClickListener { cycleProfile() }
             gold.setOnLongClickListener { showProfilePicker(); true }
-            row.addView(weight(gold, 1.6f))
-            row.addView(weight(tapKey("ESC", "menu", "esc", COLOR_KEY_DARK), 1f))
+            row.addView(weight(gold, 1.5f))
+
+            // SAVE: the gamepad's own way to reach the save states, so a
+            // snapshot does not need the keyboard pads. Tap saves into a slot
+            // right away; hold opens the Save states sheet to pick one.
+            // It sits with the other app-level controls (the profile button
+            // and ESC), and it is green because green is the colour this app
+            // uses for a save state everywhere else.
+            val save = chip("SAVE", "state", COLOR_SAVE,
+                textColor = COLOR_TEXT_ON_SAVE, subTextColor = COLOR_SUB_ON_SAVE)
+            save.setOnClickListener { listener?.onQuickSaveRequested() }
+            save.setOnLongClickListener { listener?.onStatesRequested(); true }
+            row.addView(weight(save, 1.1f))
+
+            row.addView(weight(tapKey("ESC", "menu", "esc", COLOR_KEY_DARK), 0.8f))
         } else {
             // Nintendo-style face buttons: Y and X send the y / x keys. They also
             // finish the reverse Konami code (X,Y stand in for B,A) that returns
@@ -793,7 +819,13 @@ class GameModeView(context: Context) : FrameLayout(context) {
     }
 
     /** A labelled key chip: a big label with an optional dim sub-label. */
-    private fun chip(label: String, sub: String, color: Int, textColor: Int = COLOR_TEXT): LinearLayout {
+    private fun chip(
+        label: String,
+        sub: String,
+        color: Int,
+        textColor: Int = COLOR_TEXT,
+        subTextColor: Int? = null
+    ): LinearLayout {
         val chip = LinearLayout(context)
         chip.orientation = LinearLayout.VERTICAL
         chip.gravity = Gravity.CENTER
@@ -810,9 +842,11 @@ class GameModeView(context: Context) : FrameLayout(context) {
         }
         chip.addView(t)
         if (sub.isNotEmpty()) {
-            // On a light (gold) chip the dim grey sub-label is unreadable; use a
-            // dark sub-colour there so "game mode" etc. stay legible.
-            val subColor = if (textColor == COLOR_TEXT) COLOR_TEXT_DIM else COLOR_SUB_ON_GOLD
+            // On a light (gold or green) chip the dim grey sub-label is
+            // unreadable; use a dark sub-colour there so "game mode" etc. stay
+            // legible.
+            val subColor = subTextColor
+                ?: if (textColor == COLOR_TEXT) COLOR_TEXT_DIM else COLOR_SUB_ON_GOLD
             chip.addView(TextView(context).apply {
                 text = sub
                 setTextColor(subColor)
@@ -1137,6 +1171,13 @@ class GameModeView(context: Context) : FrameLayout(context) {
         internal const val COLOR_KEY_ARMED = 0xFF1A73E8.toInt()
         @VisibleForTesting
         internal const val COLOR_GOLD = 0xFFE0A81E.toInt()
+
+        /** The SAVE chip: the colour a save state carries everywhere else. */
+        private const val COLOR_SAVE = 0xFF4CAF50.toInt()
+
+        /** Dark text on the green SAVE chip. */
+        private const val COLOR_TEXT_ON_SAVE = 0xFF0C2410.toInt()
+        private const val COLOR_SUB_ON_SAVE = 0xCC0C2410.toInt()
         /** Translucent gold for the press/touch glow under the D-pad + trackball. */
         private const val COLOR_GOLD_GLOW = 0x66E0A81E.toInt()
         private const val COLOR_TEXT = 0xFFE8EAED.toInt()

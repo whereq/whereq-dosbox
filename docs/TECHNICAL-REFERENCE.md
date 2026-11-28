@@ -2840,11 +2840,12 @@ clean `C:\>` prompt instead of looping into the game forever.
 | | |
 |---|---|
 | Directory | `noBackupFilesDir/states/<folder>/` (`SaveStore.localSlot()`) |
-| File | `slot<n>.sav`, n = 1..3 (`STATE_SLOTS = 3`) |
+| File | `slot<n>.sav`, n = 1..5 (`SaveStore.STATE_SLOTS = 5`) |
 | Written by | `DosboxNative.nativeSaveState(path)` — the §5 machine |
 | Read by | `DosboxNative.nativeLoadState(path)` |
 | "newest" | the slot with the greatest `lastModified()`; missing and zero-length files are skipped (`newestSlot()`, `WhereqDosboxActivity.kt:361`) |
-| label | *"just now"* under a minute, otherwise a relative span |
+| label | *"just now"* under a minute; a relative span while it is the same calendar day; **"Yesterday 21:40"** or *"Nov 25 09:12"* from a previous day on (`relativeSlotTime()`, `WhereqDosboxActivity.kt`) |
+| quick save | the gamepad's SAVE button writes to the first free slot, or the oldest one when they are all full (`nextFreeSlot()`) |
 | durable mirror | the same slot, gzipped, in the folder the user picked — §8.9 |
 
 ▸ **Save is only offered for the game this process is actually running.**

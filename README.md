@@ -39,6 +39,23 @@ verified. What follows is maintenance — bug fixes and documentation.
 installing a game, playing it, saving a state and keeping your saves safe, one
 step at a time, with a screenshot of every screen. No DOS knowledge needed.
 
+New in 1.0.0.20
+---------------
+
+A release with **three changes to saving a state**: the gamepad can save on its
+own, there are **five** slots instead of three, and a slot says *when* it was
+made in a way that tells two saves apart.
+
+| | |
+|---|---|
+| **The gamepad has a SAVE button** | Saving a state from **Game Mode** used to mean leaving the gamepad — typing the Konami code backwards, opening the launcher, finding the game. The top bar of the gamepad now carries a green **SAVE** chip, between the profile chip and **ESC**. Tap it and the machine is frozen straight away, into the first free slot; when all five are full, into the **oldest**, so the four newest survive. Hold it and the **Save states** sheet opens over the gamepad, and the gamepad is still there when the sheet closes. |
+| **There are five slots** | Three was too few for a game that is played for a while. The count is one constant now — `SaveStore.STATE_SLOTS` — read by the sheet, by the "newest slot" search and by the durable backup alike. The three older slots keep their numbers and their contents. |
+| **The time on a slot is exact once it is not "today"** | A save made today reads *just now*, *12 minutes ago* or *3 hours ago*. A save made yesterday used to read *yesterday* — so two saves from yesterday read the same, and there was no way to tell which was newer. From a previous day on the sheet carries the clock time too: **Yesterday 21:40**, and **Nov 25 09:12** for anything older. |
+
+The **save-state format did not change** — the changes are in the app layer, not
+in the file — so **every save state written by the earlier releases loads
+normally**.
+
 New in 1.0.0.17
 ---------------
 
@@ -191,7 +208,7 @@ New in 1.0.0.8
 
 | | |
 |---|---|
-| **Save states** | Every game gets three slots. **Save** freezes the whole running machine — the CPU, the DOS memory, the video memory, the open DOS file handles, the hardware timers — and **Load** jumps back to that exact moment. A slot is a file on the phone, so it survives quitting the app and rebooting the phone. |
+| **Save states** | Every game gets five slots. **Save** freezes the whole running machine — the CPU, the DOS memory, the video memory, the open DOS file handles, the hardware timers — and **Load** jumps back to that exact moment. A slot is a file on the phone, so it survives quitting the app and rebooting the phone. |
 | **Resume resumes** | The **Resume** button used to start the last game from the beginning. It now restores its newest save state, so the player continues where they left off. With no save state the game starts from the beginning, as before. |
 | **The arrows** | In landscape the four arrow keys sit in the inverted T of a real keyboard — up on top, left and right side by side, down below — in the right-hand column next to **File**, **Ent** and **Space**. |
 | **The game keeps running** | While a game is running, a small ongoing notification holds the emulator process, so switching to another app no longer loses the game. Tap the notification to come back to the same frame. |
@@ -362,10 +379,18 @@ Save states and Resume
 A game that is running can be frozen into a **save state** — the whole
 machine, not just the game's own save files: the CPU, the DOS memory, the
 video memory, the open DOS file handles, the hardware timers and the sound
-chips. **States** in the **Files** screen opens the three slots of the game
+chips. **States** in the **Files** screen opens the five slots of the game
 that is running; **Save** writes the current machine into a slot and **Load**
 restores it straight away, jumping back to that exact moment. A slot is a file
 on the phone, so it survives quitting the app and rebooting the phone.
+
+The gamepad has a **SAVE** button of its own, next to the profile button and
+ESC. Tapping it saves the running game into the first free slot without
+leaving Game Mode — and when all five slots are full, into the oldest one, so
+the four newest saves are the ones that survive. Holding it opens the
+**Save states** sheet over the gamepad, so a slot can be picked by hand. A
+slot made yesterday reads *Yesterday 21:40* rather than a bare "yesterday",
+because two saves from yesterday have to be told apart.
 
 The sound chips are part of the machine as well, and they are restored
 *exactly*: the FM chip is snapshotted as it is, so a note continues from the

@@ -287,6 +287,16 @@ class SaveStore(private val context: Context) {
         private const val STATES_DIR = "states"
         private const val KEY_SAVES_FOLDER = "saves_folder"
 
+        /**
+         * Save-state slots offered per game.
+         *
+         * One number for the whole app: the States sheet, the "newest slot"
+         * search and the backup-to-the-durable-folder walk all have to agree,
+         * or a slot would exist that the sheet never shows and the backup
+         * would silently skip.
+         */
+        const val STATE_SLOTS = 5
+
         /** Base name of the durable game bundle (a zip of the unpacked game).
          *  The actual file is `bundle.zip` (or an older `bundle.adg`), found
          *  tolerantly by [findChild]. */

@@ -271,6 +271,13 @@ The gold button at the top-left names the current **profile**; tap it to cycle,
 long-press for a picker. Each game remembers the profile and D-pad you last used
 with it.
 
+**The green SAVE button next to it saves the game without leaving the
+gamepad.** Tap it and the running machine is frozen into a slot straight away
+— the first free one, or, when all five are full, the oldest, so the four
+newest saves are the ones that survive. Hold it and the **Save states** sheet
+opens over the gamepad, so a slot can be picked by hand; Game Mode is still
+there when the sheet closes.
+
 ![The Game profile picker — Hybrid, Action and Point & click, and Remap buttons…](screenshots/android-n9-09-game-mode-profile-picker.png)
 
 | profile | left thumb | right thumb | for |
@@ -348,7 +355,7 @@ Press **File**, then **States** next to the game:
 
 ![The Save states sheet, with three empty slots](screenshots/android-n9-14-states-empty.png)
 
-There are three slots. Press **Save** to freeze the game into slot 1, and the
+There are five slots. Press **Save** to freeze the game into slot 1, and the
 sheet shows when you did it:
 
 ![The sheet with a saved slot — Slot 1, one minute ago, with Load now live](screenshots/android-n9-18-states-slot.png)
@@ -360,6 +367,10 @@ naming the slot and the moment it was made:
 
 **Load** puts the game back. A slot survives quitting the app and rebooting
 the phone.
+
+The time on a slot is exact once it stops being "today": a save from
+yesterday reads *Yesterday 21:40*, and an older one reads *Nov 25 09:12*. Two
+saves from the same day can therefore be told apart, and put in order.
 
 ---
 
